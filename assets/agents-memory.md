@@ -8,6 +8,26 @@ Never create or change protected configuration directories to store memory.
 Use existing memory. Create files only when useful knowledge needs saving. Do not
 use command-policy `.rules` files for memory or share memory across workspaces.
 
+### Pause and session controls
+
+- Before memory retrieval, honor a session-local skip request: do not read or use
+  saved memory or persist knowledge until explicitly resumed. Keep this state in
+  conversation, including context-compaction handoffs, not in workspace files.
+  A new independent session starts without that skip. Already loaded context cannot
+  be erased; avoid relying on it and inspect current sources instead.
+- Before each knowledge write, check `.workspace-memory/PAUSED`. Its presence blocks
+  all knowledge mutations, including add/edit/delete/compact/repair and automatic
+  maintenance, until resumed; reading remains allowed. Never queue skipped facts
+  for automatic backfill. If the marker cannot be checked, defer knowledge writes.
+- Pause persists across sessions and hosts sharing this workspace. Session skip and
+  persistent pause are independent. Control/status/help requests remain available;
+  status during skip inspects controls only. Explicit add/edit/delete is not resume.
+- On pause/skip/resume requests, use the skill command reference when available.
+  Pause creates only the PAUSED marker; resume writes removes only that marker;
+  resume usage clears only session skip; unqualified resume clears both. Preserve
+  knowledge and unrelated files. Verify persistent changes. These are agent rules,
+  not a filesystem lock; older sessions must load this rule to honor the controls.
+
 ### Retrieve selectively
 
 - Before substantial work, identify historical knowledge that could affect the

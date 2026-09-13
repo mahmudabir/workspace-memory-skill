@@ -204,6 +204,9 @@ def main(argv=None):
                 override = safe(root, root / 'AGENTS.override.md')
                 if override.is_file() and read(override).strip():
                     instructions = override
+        pause_marker = safe(root, root / '.workspace-memory/PAUSED')
+        result['writes_paused'] = pause_marker.exists()
+        result['session_usage'] = 'Not observable by helper; use conversation state'
         result['harness'] = harness
         result['instruction_scope'] = 'Direct file markers only; imports and host loading not evaluated'
         instruction_text = read(instructions) if instructions.is_file() else ''

@@ -19,12 +19,13 @@ Read [command reference](references/commands.md) for help or any action other th
 enable/update. Do not load the reference during ordinary automatic memory use.
 
 - Setup: `enable`, `update`.
+- Controls: `pause`, `skip`, `resume` (see command reference).
 - Browse: `list`, `search`, `show`, `status`, `help`.
 - Manage: `add`, `edit`, `delete`.
 - Maintain: `compact`, `check`, `repair`.
 
 Parameters include `workspace`, `topic`, `query`, `target`, `text`, `limit`, `page`,
-`harness`, `instruction-file`, and `dry-run`; applicability is defined in the reference. Default to the current
+`harness`, `instruction-file`, `mode`, and `dry-run`; applicability is defined in the reference. Default to the current
 workspace. Do not interpret an unknown action as setup. Bare invocation retains
 the enable behavior below. A request to list, search, or inspect is read-only.
 
@@ -106,6 +107,11 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    unless performed. No automatic Git staging, committing, or ignore changes.
 
 ## Memory operations
+
+Before retrieval or persistence, honor session skip state and check the workspace
+`.workspace-memory/PAUSED` marker. Read the control section in the command reference
+for pause/skip/resume/status. These controls take precedence over routine retention.
+Enable/update must preserve an existing pause; setup is not resume.
 
 Follow the workspace's installed rule. If absent, read assets/agents-memory.md for
 this operation without silently installing it. Respect higher-priority restrictions

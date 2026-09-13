@@ -16,7 +16,8 @@ Never execute argument text as code. Only the selected action authorizes changes
 | `target="selector"` | Existing entry selected by displayed number, exact label, or file plus distinctive text. Required for show/edit/delete. |
 | `text="content"` | New knowledge for add or replacement content for edit. Required unless supplied unambiguously in prose. |
 | `limit=20 page=1` | List/search/check pagination; positive integers, limit capped at 100. `next` continues the same query and ordering. |
-| `dry-run=true` | Preview a mutation without changing any file. Default false. Applies to enable/update/add/edit/delete/compact/repair. |
+| `mode="writes|usage|all"` | Resume only; default all. Writes clears persistent pause; usage clears session skip; all clears both. |
+| `dry-run=true` | Preview a mutation without changing any file. Default false. Applies to enable/update/add/edit/delete/compact/repair/pause/skip/resume. |
 
 Reject unsupported or invalid parameter combinations with a short correction;
 do not silently ignore them. Do not require parameters already clear from context.
@@ -31,6 +32,9 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | --- | --- |
 | `help` | Show a compact command list and examples. `help <action>` shows only that action. No workspace inspection needed. |
 | `enable` / `update` | Run SKILL.md setup workflow; update refreshes the managed rule. Preview only for dry-run. |
+| `pause` | Persistently block knowledge writes in this workspace; reads remain allowed. |
+| `skip` | Stop memory retrieval, use, and knowledge writes for this session only. |
+| `resume` | Clear the selected controls; default both. Do not backfill skipped knowledge. |
 | `status` | Report resolved root, effective rule presence, entry-point presence/size, topic count, and whether memory is empty. Use metadata and index reads; do not claim a full health audit. |
 | `list` | Enumerate saved knowledge entries, not just filenames. Return a paginated list with selectors, short faithful summaries, and source file/heading. Exclude scaffolding and index links. |
 | `search` / `recall` | Find relevant entries by words or semantic question. Return matches with selectors, concise excerpts, and sources; distinguish stored claims from live-verified facts. |
@@ -41,6 +45,46 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | `compact` | Consolidate the selected topic, or all current workspace memory if unfiltered. Deduplicate, shorten, resolve proven stale entries, remove verified resolved handoffs, merge tiny overlapping topics, and split oversized domains. Preserve unique useful knowledge and repair routing. |
 | `check` | Read-only audit of the selected memory scope: broken links, orphan topics, duplicates, contradictory entries, stale handoffs with supporting evidence, and excessive size. Report uncertain cases as needing verification. |
 | `repair` | Fix demonstrable routing/structural problems found in the selected scope. Index orphan knowledge with useful descriptions; preserve its contents. Resolve factual conflicts only when authoritative evidence is available. |
+
+## Pause, skip, and resume
+
+- `pause` creates `.workspace-memory/PAUSED` using [the sample](../assets/PAUSED)
+  and the existing template-driven creation workflow. An existing marker is a no-op.
+  Its presence alone means paused, regardless of contents; never store facts in it.
+  Create the parent if needed, but no MEMORY.md or topics. Reject redirected paths.
+- `skip` changes only conversation state, immediately. Do not read saved memory,
+  run retrieval helpers, or persist knowledge. Carry the flag through session
+  compaction without copying remembered facts. Do not write a shared skip flag.
+- `resume mode=writes` removes only a verified regular PAUSED marker. Missing is a
+  no-op; do not remove a directory or follow a link. `resume mode=usage` clears only
+  the session flag. Bare `resume` or `resume mode=all` does both. If persistent removal
+  fails, report the pause remains; report session state separately.
+- All knowledge mutations, even explicitly requested ones, are blocked by either
+  control until the relevant resume. A combined "resume and add" authorizes both.
+  Read-only list/search/show/check are allowed during write pause, blocked during skip.
+  Setup/update can refresh instructions but must preserve both controls.
+- `status` reports persistent writes paused/active/unknown and session usage
+  skipped/active separately. While skipped, inspect only PAUSED metadata and session
+  state; do not call the normal status helper (which reads memory for emptiness).
+  Help and control operations never need knowledge reads. Python can report only
+  persistent pause; session state must come from this conversation.
+- Dry-run changes neither files nor session flags. Controls do not install project
+  instructions implicitly. If the installed rule predates these controls, explain
+  that update is needed for future sessions to honor the marker. Do not claim host
+  enforcement or affect user-global memory. Concurrent/older agents may not comply.
+- Control mutations are the exception to the knowledge-only mutation boundary below.
+  A forget-all request must preserve PAUSED so deleting knowledge does not resume it.
+
+Examples (use the current host's invocation syntax):
+
+```text
+$workspace-memory-skill pause
+$workspace-memory-skill skip
+$workspace-memory-skill status
+$workspace-memory-skill resume mode=usage
+$workspace-memory-skill resume mode=writes
+$workspace-memory-skill resume
+```
 
 ## Reliable listing and targeting
 

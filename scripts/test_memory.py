@@ -115,6 +115,16 @@ class MemoryTests(unittest.TestCase):
         self.put('AGENTS.md', begin + '\nMemory rule\n' + end)
         self.assertTrue(self.call('status')['managed_rule_present'])
 
+    def test_pause_status_does_not_create_or_list_control_as_knowledge(self):
+        self.assertFalse(self.call('status')['writes_paused'])
+        self.assertEqual(list(self.root.iterdir()), [])
+        marker = self.put('.workspace-memory/PAUSED', 'Writes paused')
+        self.assertTrue(self.call('status')['writes_paused'])
+        self.assertEqual(self.call('list')['entries'], [])
+        self.assertEqual(marker.read_text(), 'Writes paused')
+        marker.unlink()
+        self.assertFalse(self.call('status')['writes_paused'])
+
     def test_host_specific_status_and_override_scope(self):
         rule = '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->'
         for filename in ('AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md'):
