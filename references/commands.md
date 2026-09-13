@@ -9,6 +9,8 @@ Never execute argument text as code. Only the selected action authorizes changes
 | Parameter | Meaning and default |
 | --- | --- |
 | `workspace="path"` | Explicit workspace root; otherwise resolve the current workspace. Never infer another developer's root or use user-global memory. |
+| `harness="codex|claude|gemini|opencode|cursor|copilot|generic"` | Setup/update/status only; default to the known current host. Setup may accept an explicit comma-separated set or `all` for the six named hosts. |
+| `instruction-file="relative/path"` | Setup/update/status only; verified project instruction path within the workspace for a custom host/configuration. Overrides the default path; never invent host support. |
 | `topic="name or relative file"` | Narrow to a knowledge domain or existing memory topic. Default: relevant scope for search; whole memory for list/status/compact/check/repair. |
 | `query="words"` | Search phrase; search/recall require this or a natural-language question. |
 | `target="selector"` | Existing entry selected by displayed number, exact label, or file plus distinctive text. Required for show/edit/delete. |
@@ -20,6 +22,8 @@ Reject unsupported or invalid parameter combinations with a short correction;
 do not silently ignore them. Do not require parameters already clear from context.
 Ask only for missing content, ambiguous roots/targets, or consequential unresolved
 choices. Do not invent memory content. Read-only commands never create files.
+
+For status, first read [harness integration](harnesses.md) and resolve the effective project instruction file. Pass custom paths explicitly to the helper.
 
 ## Actions
 
@@ -48,7 +52,7 @@ to resolve the workspace root explicitly. Pass arguments as literal values using
 the host's safe quoting; never concatenate user text into executable shell syntax.
 
 ```text
-python -B <skill-dir>/scripts/memory.py status --workspace <root>
+python -B <skill-dir>/scripts/memory.py status --workspace <root> --harness <current-host>
 python -B <skill-dir>/scripts/memory.py list --workspace <root> --limit 20 --page 1
 python -B <skill-dir>/scripts/memory.py search --workspace <root> --query "authentication"
 python -B <skill-dir>/scripts/memory.py show --workspace <root> --id <returned-id>
@@ -73,9 +77,15 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
   semantic equivalence, or resolved handoffs. Continue only the requested reasoning
   audit with relevant source reads. Check may scan all selected files locally while
   returning only one page of issues to context.
-- Status describes root instruction markers and selected file metadata plus an
+- For status, pass the resolved `--harness` (codex, claude, gemini, opencode, cursor, copilot,
+  or generic), or `--instruction-file` for a verified custom path. The helper defaults
+  to generic AGENTS.md and never guesses the running host. Multiple-host status requires
+  one call per host. These flags are rejected for other helper actions.
+- Status describes selected instruction markers and selected file metadata plus an
   early-stop emptiness check. It does not prove effective instructions in every nested
-  directory. Unsafe linked memory paths fail rather than being followed.
+  directory, resolve imports, or prove host loading. If the rule is imported, inspect
+  that import and its target with native file tools before concluding setup is absent.
+  Unsafe linked memory paths fail rather than being followed.
 - The helper has no write, compact, repair, install, or network operations. It does
   not automatically redact existing secrets; avoid printing known-sensitive entries
   and never repeat sensitive content to the user. Use targeted safe inspection if
@@ -137,18 +147,18 @@ may inspect all scoped memory incrementally, without copying it all into the res
 ## Examples
 
 ```text
-$workspace-memory help
-$workspace-memory status
-$workspace-memory list limit=20 page=1
-$workspace-memory search query="authentication decisions"
-$workspace-memory show target=3
-$workspace-memory add topic="testing" text="Run integration checks against an isolated database."
-$workspace-memory edit target=3 text="Use an isolated database per integration test run."
-$workspace-memory delete target=3
-$workspace-memory compact dry-run=true
-$workspace-memory compact
-$workspace-memory check topic="testing"
-$workspace-memory repair
+$workspace-memory-skill help
+$workspace-memory-skill status
+$workspace-memory-skill list limit=20 page=1
+$workspace-memory-skill search query="authentication decisions"
+$workspace-memory-skill show target=3
+$workspace-memory-skill add topic="testing" text="Run integration checks against an isolated database."
+$workspace-memory-skill edit target=3 text="Use an isolated database per integration test run."
+$workspace-memory-skill delete target=3
+$workspace-memory-skill compact dry-run=true
+$workspace-memory-skill compact
+$workspace-memory-skill check topic="testing"
+$workspace-memory-skill repair
 ```
 
 Examples are independent; numbered targets require a prior result list in the same

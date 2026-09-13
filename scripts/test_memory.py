@@ -115,6 +115,30 @@ class MemoryTests(unittest.TestCase):
         self.put('AGENTS.md', begin + '\nMemory rule\n' + end)
         self.assertTrue(self.call('status')['managed_rule_present'])
 
+    def test_host_specific_status_and_override_scope(self):
+        rule = '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->'
+        for filename in ('AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md'):
+            self.put(filename, rule)
+        self.put('AGENTS.override.md', 'Unrelated Codex override')
+        for host, filename in (('claude', 'CLAUDE.md'), ('gemini', 'GEMINI.md'),
+                               ('opencode', 'AGENTS.md'), ('cursor', 'AGENTS.md'),
+                               ('copilot', '.github/copilot-instructions.md'),
+                               ('generic', 'AGENTS.md'), ('codex', 'AGENTS.override.md')):
+            result = self.call('status', '--harness', host)
+            self.assertEqual(Path(result['instruction_file']).relative_to(self.root).as_posix(), filename)
+            self.assertEqual(result['managed_rule_present'], host != 'codex')
+
+    def test_custom_instruction_path_and_invalid_options(self):
+        rule = '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->'
+        self.put('.claude/CLAUDE.md', rule)
+        self.assertTrue(self.call('status', '--instruction-file', '.claude/CLAUDE.md')['managed_rule_present'])
+        for path in ('../outside.md', str(self.root / 'absolute.md')):
+            with self.assertRaises(ValueError):
+                self.call('status', '--instruction-file', path)
+        for args in (('list', '--harness', 'claude'), ('check', '--instruction-file', 'AGENTS.md')):
+            with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+                self.call(*args)
+
     def test_cli_returns_bounded_json_for_large_memory(self):
         content = '# Memory\n## Decisions\n' + ''.join(
             '- Fact %d: %s\n' % (i, 'Important verified detail. ' * 40) for i in range(200))

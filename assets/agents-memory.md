@@ -2,7 +2,7 @@
 ## Persistent workspace memory
 
 Keep compact current working knowledge, not task logs, history, or documentation
-copies. These paths are relative to the workspace root containing this rule:
+copies. These paths are relative to the project workspace root (not the skill or instruction subdirectory):
 `.workspace-memory/MEMORY.md` is the entry point; `.workspace-memory/topics/` holds optional topic details.
 Never create or change protected configuration directories to store memory.
 Use existing memory. Create files only when useful knowledge needs saving. Do not

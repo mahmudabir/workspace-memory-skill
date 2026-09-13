@@ -158,6 +158,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['status', 'list', 'search', 'show', 'check'])
     parser.add_argument('--workspace', required=True, help='Resolved workspace root; never auto-discovered')
+    parser.add_argument('--harness', choices=['codex', 'claude', 'gemini', 'opencode', 'cursor', 'copilot', 'generic'])
+    parser.add_argument('--instruction-file', help='Verified workspace-relative instruction file for status')
     parser.add_argument('--topic')
     parser.add_argument('--query')
     parser.add_argument('--id')
@@ -176,6 +178,8 @@ def main(argv=None):
         parser.error('--id applies only to show')
     if (args.limit != 20 or args.page != 1) and args.action not in ('list', 'search', 'check'):
         parser.error('pagination applies only to list/search/check')
+    if (args.harness or args.instruction_file) and args.action != 'status':
+        parser.error('--harness and --instruction-file apply only to status')
     root = Path(args.workspace).resolve(strict=True)
     if not root.is_dir():
         raise ValueError('Workspace must be a directory')
@@ -187,8 +191,21 @@ def main(argv=None):
             raise ValueError('No matching topic file; use agent retrieval for heading-based topics')
     result = {'workspace': str(root), 'action': args.action}
     if args.action == 'status':
-        override = safe(root, root / 'AGENTS.override.md')
-        instructions = override if override.is_file() and read(override).strip() else safe(root, root / 'AGENTS.md')
+        harness = args.harness or 'generic'
+        if args.instruction_file:
+            relative = Path(args.instruction_file)
+            if relative.is_absolute() or relative.drive or '..' in relative.parts:
+                raise ValueError('Instruction file must be workspace-relative without traversal')
+            instructions = safe(root, root / relative)
+        else:
+            filename = {'claude': 'CLAUDE.md', 'gemini': 'GEMINI.md', 'copilot': '.github/copilot-instructions.md'}.get(harness, 'AGENTS.md')
+            instructions = safe(root, root / filename)
+            if harness == 'codex':
+                override = safe(root, root / 'AGENTS.override.md')
+                if override.is_file() and read(override).strip():
+                    instructions = override
+        result['harness'] = harness
+        result['instruction_scope'] = 'Direct file markers only; imports and host loading not evaluated'
         instruction_text = read(instructions) if instructions.is_file() else ''
         index = root / '.workspace-memory/MEMORY.md'
         result.update(index_exists=index in all_files,

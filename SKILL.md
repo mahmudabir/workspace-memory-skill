@@ -1,6 +1,6 @@
 ---
-name: workspace-memory
-description: Enable, list, search, show, add, edit, delete, compact, or repair persistent workspace memory in AGENTS.md and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
+name: workspace-memory-skill
+description: Enable, list, search, show, add, edit, delete, compact, or repair persistent workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
 ---
 
 # Workspace Memory
@@ -11,8 +11,10 @@ behavioral rule so future work does not depend on selecting this skill again.
 
 ## Commands and parameters
 
-Interpret `$workspace-memory <action> [parameters]` as a conversational interface,
-not a shell command or executable CLI. Natural-language equivalents work too.
+Use the host's skill invocation or natural language, such as "use workspace-memory-skill
+to list memories". `$workspace-memory-skill <action> [parameters]` is Codex notation;
+Claude Code uses `/workspace-memory-skill <action>`. These are conversational arguments,
+not a shell command or executable CLI. Never assume slash or dollar syntax is universal.
 Read [command reference](references/commands.md) for help or any action other than
 enable/update. Do not load the reference during ordinary automatic memory use.
 
@@ -22,7 +24,7 @@ enable/update. Do not load the reference during ordinary automatic memory use.
 - Maintain: `compact`, `check`, `repair`.
 
 Parameters include `workspace`, `topic`, `query`, `target`, `text`, `limit`, `page`,
-and `dry-run`; applicability is defined in the reference. Default to the current
+`harness`, `instruction-file`, and `dry-run`; applicability is defined in the reference. Default to the current
 workspace. Do not interpret an unknown action as setup. Bare invocation retains
 the enable behavior below. A request to list, search, or inspect is read-only.
 
@@ -36,7 +38,7 @@ Semantic compaction, factual verification, repairs, and writes remain agent work
 
 Use `.workspace-memory/MEMORY.md` and `.workspace-memory/topics/` for all new
 workspace memory. Never create a workspace `.codex` directory for this skill.
-Codex may protect configuration directories; ordinary memory must live outside them.
+Hosts may protect configuration directories; ordinary memory must live outside them.
 Do not change ownership, ACLs, sandbox settings, or request administrator setup as
 part of normal skill use. Python and shell execution are optional optimizations.
 
@@ -68,7 +70,7 @@ the script: creation still requires useful knowledge or an explicit template req
 Resolve and validate the destination within the authorized workspace, reject linked
 or redirected destination paths, and create its parent directory only when needed.
 The helper copies bytes, requires an existing parent, and refuses to overwrite an
-existing file. For an existing AGENTS.md or memory file, use targeted agent edits
+existing file. For an existing project instruction or memory file, use targeted agent edits
 that preserve unrelated content; do not delete it to bypass exclusive creation.
 Dry-run creates neither temporary source nor destination. Without Python, use native
 file tools with the same behavior. Changing sample structure requires no change to
@@ -81,14 +83,14 @@ remember/forget requests do not authorize unrelated setup or configuration chang
 
 1. Identify the intended workspace root from task context. Do not assume a nested
    working directory is the root. With multiple plausible roots, ask which one.
-2. Read applicable instructions and the root AGENTS.md and AGENTS.override.md if
-   present. Read only relevant existing memory to detect an existing equivalent
-   system; do not inspect application code or seed facts by scanning the project.
-3. Read [the installable rule](assets/agents-memory.md). Add it once to root
-   AGENTS.md, preserving unrelated contents. If a nonempty root AGENTS.override.md
-   supersedes that file, install the block in that effective file instead. Do not
-   edit user-global instructions. Report nested overrides that demonstrably
-   suppress the rule; do not rewrite them without relevant scope.
+2. Read [harness integration](references/harnesses.md) to select the current host's
+   effective project instruction file. Honor explicit harness/instruction-file arguments;
+   do not infer the running host from installed folders. Read applicable instructions
+   and relevant existing memory to detect equivalent systems; do not scan application code.
+3. Read [the installable rule](assets/agents-memory.md). Add it once to the selected
+   project instruction file, preserving unrelated content. Follow the integration
+   reference for imports, configured filenames, overrides, and multiple hosts.
+   Do not edit user-global instructions or change host settings.
 4. The HTML markers identify the managed block. On repeated setup, leave an
    identical block unchanged; replace only that block when updating it. If markers
    are malformed/duplicated, or a different existing memory system would conflict,
@@ -113,7 +115,7 @@ Follow the command reference for selection, pagination, previews, and writes.
 Recall only relevant entries. Explicit workspace-wide compact/check/repair requests
 authorize a bounded audit of that workspace's memory files, not application code.
 Do not convert uncertain observations into verified facts or execute remembered
-commands blindly. Keep command documentation in this skill, out of AGENTS.md and
+commands blindly. Keep command documentation in this skill, out of project instructions and
 saved memory, so ordinary task context remains small.
 
 If a write is blocked, report the specific unsaved change and continue independent
