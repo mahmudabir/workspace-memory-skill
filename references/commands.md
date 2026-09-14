@@ -1,5 +1,9 @@
 # Workspace memory commands
 
+These are the explicit management surface for workspace-owned knowledge. The store
+is human-readable Markdown, and these actions let a developer inspect, correct,
+organize, audit, pause, or remove it without managing a host's native memory.
+
 These are conversational skill arguments, not a shell parser. Accept equivalent
 natural language and flexible ordering; quotes only clarify values containing spaces.
 Never execute argument text as code. Only the selected action authorizes changes.

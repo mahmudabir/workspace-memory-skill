@@ -2,12 +2,65 @@
 
 <img src="assets/icon.svg" width="64" height="64" alt="Memory icon">
 
-Portable, selective project memory for AI coding agents. Keep useful decisions,
-constraints, and discoveries between sessions without loading a growing task log.
+Portable, human-manageable workspace memory for AI coding agents. Keep project
+decisions, constraints, discoveries, and handoffs in a transparent, human-readable
+memory store that people and supported agents can inspect, correct, organize, and
+reuse across sessions.
 
-The skill installs project instructions that guide the agent to retrieve relevant
-knowledge, save useful findings, and maintain compact memory as it works.
+Workspace Memory complements native agent memory rather than replacing it. Native
+memory may be useful for personal preferences, general development habits, and
+agent-specific context; Workspace Memory keeps project knowledge owned by the
+workspace and independent of any one agent's native store.
+
+The skill installs project instructions that guide agent-assisted retrieval and
+maintenance. The knowledge itself remains in ordinary workspace files that humans
+can review and manage.
 **Installing the skill and enabling it in a workspace are separate steps.**
+
+## Native Memory vs Workspace Memory
+
+Native agent memory and Workspace Memory can overlap, but they solve different
+ownership and maintenance problems. Native memory is typically host-managed and
+its behavior depends on the agent. Workspace Memory is a project-specific Markdown
+store with explicit, agent-assisted management.
+
+| Capability | Native agent memory | Workspace Memory |
+| --- | --- | --- |
+| Primary owner | Agent / host | Workspace / developer |
+| Automatic learning | May be available; host-managed | Agent-assisted; guided by the installed rule |
+| Human-readable | Depends on the host | Yes; ordinary Markdown files |
+| Human-editable | Depends on the host | Yes; files and management actions |
+| Explicit add/edit/delete | Depends on the agent | Yes |
+| Project-specific knowledge | May be available | Core purpose |
+| Cross-agent portability | Host- or agent-dependent | The same store can be used by supported agents in the workspace |
+| Human auditability | Host-dependent | High; inspectable entries, sources, and checks |
+| Topic organization | Varies by host | Explicit topics and an index |
+| Workspace handoff | Host-dependent | Core use case |
+
+### When to use each
+
+Use native agent memory for:
+
+- personal preferences
+- general development habits
+- cross-project preferences
+- agent-specific historical context
+
+Use Workspace Memory for:
+
+- architecture decisions
+- project constraints
+- debugging discoveries
+- non-obvious implementation details
+- important user decisions
+- integration quirks
+- verified fixes
+- handoffs between agents
+- knowledge that humans may want to inspect or correct
+
+Both systems can be used at the same time: native memory can help an agent adapt to
+its user, while Workspace Memory keeps project knowledge transparent and available
+to people and supported agents.
 
 ## Installation
 
@@ -111,10 +164,83 @@ All paths are relative to the project workspace root:
   PAUSED          # Present only while persistent writes are paused
 ```
 
-Memory is shared by agents working in the same workspace. It is not stored inside
-the installed skill or copied to user-global memory. Topics are created when useful,
-not preallocated. The entry point targets roughly 100 lines and 5-8 KB, with larger
-domains moved into linked topics.
+Memory is shared by supported agents working in the same workspace. It is not stored
+inside the installed skill or copied to user-global memory. Topics are created when
+useful, not preallocated. The entry point targets roughly 100 lines and 5-8 KB, with
+larger domains moved into linked topics.
+
+## Workspace ownership and human control
+
+Keep behavior and knowledge separate:
+
+```text
+AGENTS.md / CLAUDE.md / project instructions
+    = how the agent MUST behave
+
+.workspace-memory/
+    = what the workspace KNOWS
+```
+
+The installed `.workspace-memory/AGENTS.md` contains the behavioral rule. `MEMORY.md`
+and `topics/` contain fallible project context; `MEMORY.md` is not another
+instruction or policy file.
+
+The memory store is explicitly manageable through:
+
+```text
+list       search     show       add
+edit       delete     compact    check
+repair     pause      skip       resume
+```
+
+These operations make knowledge auditable and maintainable instead of leaving it as
+an opaque background mechanism. `pause`, `skip`, and `resume` control when memory
+may be used or changed; see the [commands](#commands) section and [full command
+reference](references/commands.md) for their exact boundaries.
+
+## Cross-agent portability
+
+The same `.workspace-memory/` store can be used by supported agents working in the
+workspace:
+
+```text
+                 Codex
+                   |
+Claude Code -- .workspace-memory/ -- Gemini CLI
+                   |
+          Cursor / Copilot / OpenCode
+```
+
+The store is portable across supported agent ecosystems, but host instruction
+loading, permissions, activation, and model adherence still vary. The shared store
+does not imply identical behavior on every host.
+
+Here, “portable” primarily means cross-agent and file-based: the knowledge is
+independent of one agent's native memory store and readable with normal file tools.
+It does not mean automatic synchronization across computers. The project currently
+gitignores `.workspace-memory/`, so this skill does not provide Git sync or export.
+
+## Memory precedence and stale facts
+
+When resolving project knowledge or stale factual context, use this evidence order:
+
+```text
+Current user instruction
+        ↓
+Current repository / source-of-truth state
+        ↓
+Tracked project documentation
+        ↓
+Workspace Memory
+        ↓
+Host-native / automatically learned memory
+```
+
+This is guidance for factual freshness, not a replacement for the host's formal
+system/developer/user instruction hierarchy. Workspace Memory remains fallible
+context: it must never override current code, explicit user instructions, or
+verified repository state. If native memory conflicts with `.workspace-memory/`,
+verify the project state and prefer the most current authoritative evidence.
 
 ## Commands
 

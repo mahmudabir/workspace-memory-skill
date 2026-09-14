@@ -31,6 +31,8 @@ Gemini can customize `context.fileName`; inspect relevant available configuratio
 without changing it. AGENTS.override.md has special meaning here only for Codex.
 Never infer that another host implements Codex precedence. Preserve native auto-memory
 and host settings; this skill manages only the shared `.workspace-memory` store.
+That store is workspace-owned project context, not a replacement for a host's native
+memory system.
 
 Default setup targets the current host only. Explicit `harness=all` targets the six
 named hosts; an explicit list targets that set. Deduplicate identical destinations.
@@ -41,6 +43,11 @@ triggers and control guards; detailed rules load only before memory operations
 and are reused while unchanged and in context. Updates refresh the rule and requested loaders;
 do not change unrequested hosts. Concurrent agents must reread before writes and
 avoid overwriting newer content; no lock or transactional multi-agent guarantee exists.
+
+The shared store is portable across supported agents operating on the same workspace.
+Host instruction loading, permissions, activation, and model adherence still vary,
+so portability does not promise identical behavior. The store is gitignored by setup;
+this cross-agent sharing does not provide automatic synchronization across computers.
 
 Use root destinations by default. A custom instruction file must remain inside the
 workspace, be an actual always-loaded project instruction mechanism, and preserve

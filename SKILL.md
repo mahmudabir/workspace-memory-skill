@@ -1,11 +1,15 @@
 ---
 name: workspace-memory
-description: Enable, list, search, show, add, edit, delete, compact, repair, or uninstall persistent workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
+description: Enable, list, search, show, add, edit, delete, compact, repair, or uninstall persistent, human-manageable workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
 ---
 
 # Workspace Memory
 
-Provide portable, selective memory with no language, platform, or runtime dependency.
+Provide portable, selective, workspace-owned memory with no language, platform, or
+runtime dependency. The store is human-readable and explicitly manageable; it
+complements host-native agent memory rather than replacing it. Native memory may
+hold personal or agent-specific context, while this skill keeps project knowledge
+in the workspace for supported agents and the developer to inspect and maintain.
 Skill selection alone is not an always-on hook: setup installs a self-contained
 loader and a separate ignored behavioral rule so future work does not depend on
 selecting this skill again.
@@ -33,7 +37,9 @@ Semantic compaction, factual verification, repairs, and writes remain agent work
 ## Storage and file access
 
 Use `.workspace-memory/MEMORY.md` and `.workspace-memory/topics/` for all new
-workspace memory. Never create a workspace `.codex` directory for this skill.
+workspace memory. These are ordinary, workspace-owned knowledge files; they are
+human-readable and may be explicitly corrected, organized, or deleted through the
+documented workflows. Never create a workspace `.codex` directory for this skill.
 Hosts may protect configuration directories; ordinary memory must live outside them.
 Do not change ownership, ACLs, sandbox settings, or request administrator setup as
 part of normal skill use. Python and shell execution are optional optimizations.
@@ -60,6 +66,14 @@ Enable/update must preserve an existing pause; setup is not resume.
 Follow the workspace's installed rule. If absent, read assets/agents-memory.md for
 this operation without silently installing it. Respect higher-priority restrictions
 on memory writes; workspace setup does not grant access to host-managed memory.
+
+Treat stored memory as fallible project context. For project facts, prefer current
+user instructions, current repository/source-of-truth state, and tracked project
+documentation over Workspace Memory; treat host-native or automatically learned
+memory as lower-confidence context when it conflicts. This is a factual-freshness
+heuristic, not a change to the host's formal instruction hierarchy. Never let stored
+memory override current code, explicit user instructions, or verified repository
+state; verify conflicts against the current project.
 
 For explicit commands, follow the command reference and its selected workflow
 for selection, pagination, previews, and writes.
