@@ -15,22 +15,22 @@ Clone this repository into your harness's project skill directory. For example,
 from the project root, for GitHub Copilot:
 
 ```sh
-git clone https://github.com/mahmudabir/workspace-memory-skill.git .github/skills/workspace-memory-skill
+git clone https://github.com/mahmudabir/workspace-memory-skill.git .github/skills/workspace-memory
 ```
 
 For another harness, use its destination below. Alternatively, download the
 repository and copy its contents into that folder. Keep `SKILL.md`, `assets/`,
 `references/`, and `scripts/` together. The installed folder must be named
-`workspace-memory-skill`.
+`workspace-memory`.
 
 | Harness | Project skill directory | Default project instructions |
 | --- | --- | --- |
-| Codex | `.agents/skills/workspace-memory-skill/` | `AGENTS.md` or effective `AGENTS.override.md` |
-| Claude Code | `.claude/skills/workspace-memory-skill/` | `CLAUDE.md` |
-| Gemini CLI | `.gemini/skills/workspace-memory-skill/` | `GEMINI.md` |
-| OpenCode | `.opencode/skills/workspace-memory-skill/` | `AGENTS.md` |
-| Cursor | `.cursor/skills/workspace-memory-skill/` | `AGENTS.md` |
-| GitHub Copilot | `.github/skills/workspace-memory-skill/` | `.github/copilot-instructions.md` |
+| Codex | `.agents/skills/workspace-memory/` | `AGENTS.md` or effective `AGENTS.override.md` |
+| Claude Code | `.claude/skills/workspace-memory/` | `CLAUDE.md` |
+| Gemini CLI | `.gemini/skills/workspace-memory/` | `GEMINI.md` |
+| OpenCode | `.opencode/skills/workspace-memory/` | `AGENTS.md` |
+| Cursor | `.cursor/skills/workspace-memory/` | `AGENTS.md` |
+| GitHub Copilot | `.github/skills/workspace-memory/` | `.github/copilot-instructions.md` |
 
 These paths describe project installation. Personal installation uses the host's
 supported user skill location; see the [harness guide and official documentation](references/harnesses.md).
@@ -40,16 +40,16 @@ Existing imports and configured instruction filenames are respected.
 
 After the host discovers the skill, ask:
 
-> Use workspace-memory-skill to enable memory for this workspace.
+> Use workspace-memory to enable memory for this workspace.
 
 Or invoke it directly where supported:
 
 ```text
 # Codex
-$workspace-memory-skill enable
+$workspace-memory enable
 
 # Claude Code
-/workspace-memory-skill enable
+/workspace-memory enable
 ```
 
 Other hosts can use their skill picker or natural language. Dollar and slash
@@ -105,15 +105,15 @@ Use these actions with the skill invocation or equivalent natural language:
 These examples use Codex notation; adapt the invocation for your host.
 
 ```text
-$workspace-memory-skill list limit=20 page=1
-$workspace-memory-skill search query="authentication decisions"
-$workspace-memory-skill show target=3
-$workspace-memory-skill add topic="testing" text="Use an isolated database for integration tests."
-$workspace-memory-skill edit target=3 text="Use a separate database for each integration test run."
-$workspace-memory-skill delete target=3
-$workspace-memory-skill compact dry-run=true
-$workspace-memory-skill check
-$workspace-memory-skill repair
+$workspace-memory list limit=20 page=1
+$workspace-memory search query="authentication decisions"
+$workspace-memory show target=3
+$workspace-memory add topic="testing" text="Use an isolated database for integration tests."
+$workspace-memory edit target=3 text="Use a separate database for each integration test run."
+$workspace-memory delete target=3
+$workspace-memory compact dry-run=true
+$workspace-memory check
+$workspace-memory repair
 ```
 
 Numbered targets refer to the latest displayed results in the same conversation.
@@ -122,12 +122,12 @@ The examples are independent; list or search before selecting a number.
 ### Pause and session skip
 
 ```text
-$workspace-memory-skill pause
-$workspace-memory-skill skip
-$workspace-memory-skill status
-$workspace-memory-skill resume mode=usage
-$workspace-memory-skill resume mode=writes
-$workspace-memory-skill resume
+$workspace-memory pause
+$workspace-memory skip
+$workspace-memory status
+$workspace-memory resume mode=usage
+$workspace-memory resume mode=writes
+$workspace-memory resume
 ```
 
 - **Pause** persists across sessions and hosts through the `PAUSED` marker. It blocks

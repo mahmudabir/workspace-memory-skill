@@ -78,12 +78,12 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 Examples (use the current host's invocation syntax):
 
 ```text
-$workspace-memory-skill pause
-$workspace-memory-skill skip
-$workspace-memory-skill status
-$workspace-memory-skill resume mode=usage
-$workspace-memory-skill resume mode=writes
-$workspace-memory-skill resume
+$workspace-memory pause
+$workspace-memory skip
+$workspace-memory status
+$workspace-memory resume mode=usage
+$workspace-memory resume mode=writes
+$workspace-memory resume
 ```
 
 ## Reliable listing and targeting
@@ -191,18 +191,18 @@ may inspect all scoped memory incrementally, without copying it all into the res
 ## Examples
 
 ```text
-$workspace-memory-skill help
-$workspace-memory-skill status
-$workspace-memory-skill list limit=20 page=1
-$workspace-memory-skill search query="authentication decisions"
-$workspace-memory-skill show target=3
-$workspace-memory-skill add topic="testing" text="Run integration checks against an isolated database."
-$workspace-memory-skill edit target=3 text="Use an isolated database per integration test run."
-$workspace-memory-skill delete target=3
-$workspace-memory-skill compact dry-run=true
-$workspace-memory-skill compact
-$workspace-memory-skill check topic="testing"
-$workspace-memory-skill repair
+$workspace-memory help
+$workspace-memory status
+$workspace-memory list limit=20 page=1
+$workspace-memory search query="authentication decisions"
+$workspace-memory show target=3
+$workspace-memory add topic="testing" text="Run integration checks against an isolated database."
+$workspace-memory edit target=3 text="Use an isolated database per integration test run."
+$workspace-memory delete target=3
+$workspace-memory compact dry-run=true
+$workspace-memory compact
+$workspace-memory check topic="testing"
+$workspace-memory repair
 ```
 
 Examples are independent; numbered targets require a prior result list in the same

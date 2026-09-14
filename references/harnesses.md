@@ -1,7 +1,7 @@
 # Harness integration
 
 Read for enable/update/status or installation help. The skill name and installed
-directory must both be `workspace-memory-skill`; the GitHub repository can have any
+directory must both be `workspace-memory`; the GitHub repository can have any
 name. Keep the whole folder, including scripts, assets, and references. Resolve
 resources relative to the loaded SKILL.md, never a hardcoded home directory.
 `agents/openai.yaml` is optional Codex UI metadata; other hosts need no icon support.
@@ -10,12 +10,12 @@ resources relative to the loaded SKILL.md, never a hardcoded home directory.
 
 | Harness | Default project instruction destination | Project skill location |
 | --- | --- | --- |
-| Codex | `AGENTS.md`; nonempty `AGENTS.override.md` takes precedence | `.agents/skills/workspace-memory-skill/` |
-| Claude Code | `CLAUDE.md` | `.claude/skills/workspace-memory-skill/` |
-| Gemini CLI | `GEMINI.md`; honor a known configured context filename | `.gemini/skills/workspace-memory-skill/` |
-| OpenCode | `AGENTS.md` | `.opencode/skills/workspace-memory-skill/` |
-| GitHub Copilot | `.github/copilot-instructions.md` | `.github/skills/workspace-memory-skill/` |
-| Cursor | `AGENTS.md` | `.cursor/skills/workspace-memory-skill/` |
+| Codex | `AGENTS.md`; nonempty `AGENTS.override.md` takes precedence | `.agents/skills/workspace-memory/` |
+| Claude Code | `CLAUDE.md` | `.claude/skills/workspace-memory/` |
+| Gemini CLI | `GEMINI.md`; honor a known configured context filename | `.gemini/skills/workspace-memory/` |
+| OpenCode | `AGENTS.md` | `.opencode/skills/workspace-memory/` |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/skills/workspace-memory/` |
+| Cursor | `AGENTS.md` | `.cursor/skills/workspace-memory/` |
 
 Use the active host from runtime context, or the requested harness. A folder's
 presence does not identify the running host. If unknown, inspect available host
@@ -55,7 +55,7 @@ selector or natural language; no universal Copilot slash syntax is assumed.
 ## Invocation and validation
 
 Use the installed host's skill picker/tool or natural language. Codex examples use
-`$workspace-memory-skill list`; Claude Code supports `/workspace-memory-skill list`.
+`$workspace-memory list`; Claude Code supports `/workspace-memory list`.
 Other hosts need not implement either spelling. The action/parameter semantics are
 identical once loaded. Host trust, tool permissions, and activation prompts still apply.
 

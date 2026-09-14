@@ -1,5 +1,5 @@
 ---
-name: workspace-memory-skill
+name: workspace-memory
 description: Enable, list, search, show, add, edit, delete, compact, or repair persistent workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
 ---
 
@@ -11,9 +11,9 @@ behavioral rule so future work does not depend on selecting this skill again.
 
 ## Commands and parameters
 
-Use the host's skill invocation or natural language, such as "use workspace-memory-skill
-to list memories". `$workspace-memory-skill <action> [parameters]` is Codex notation;
-Claude Code uses `/workspace-memory-skill <action>`. These are conversational arguments,
+Use the host's skill invocation or natural language, such as "use workspace-memory
+to list memories". `$workspace-memory <action> [parameters]` is Codex notation;
+Claude Code uses `/workspace-memory <action>`. These are conversational arguments,
 not a shell command or executable CLI. Never assume slash or dollar syntax is universal.
 Read [command reference](references/commands.md) for help or any action other than
 enable/update. Do not load the reference during ordinary automatic memory use.
