@@ -127,7 +127,7 @@ needed for an unambiguous explicit uninstall within host permissions.
 6. Verify removed paths and managed blocks, then report completion or exact remaining
    paths/blockers. Already absent is a no-op. Concurrent sessions with old rules
    may recreate files; explain that those sessions need refreshed instructions.
-   Preserve Git history and settings; do not stage, commit, or push.
+   Preserve Git history and settings, including .gitignore rules so residual or recreated memory remains ignored; do not stage, commit, or push.
 
 Uninstall is allowed while paused or skipped and requires no saved-knowledge reads.
 It is the explicit exception to normal mutation boundaries. `dry-run=true` lists
@@ -217,7 +217,7 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
 Resolve all memory file paths within the selected root's `.workspace-memory/MEMORY.md` and
 `.workspace-memory/topics/`. Do not follow symlinks, traversal paths, or index links outside that
 boundary for memory mutations. Preserve non-memory README/configuration files.
-Setup/update may edit the effective instructions as specified in SKILL.md; uninstall may remove managed integration as specified below.
+Setup/update may edit the effective instructions and workspace-root .gitignore as specified in SKILL.md; uninstall may remove managed integration as specified in Full workspace removal.
 
 Before a write, inspect the target and relevant equivalents, preserve concurrent
 changes, and honor the installed memory policy. An explicit developer decision may

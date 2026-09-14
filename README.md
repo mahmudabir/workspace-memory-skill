@@ -219,8 +219,18 @@ all supported harnesses has not been verified. Concurrent agents must avoid
 clobbering each other's edits; this skill provides no transactional write lock.
 
 Keep credentials, secrets, sensitive personal data, raw logs, and speculative facts
-out of memory. Memory may be shared through version control. The skill does not
-stage, commit, push, or change ignore settings automatically.
+out of memory. Enable/update ensures the workspace-root .gitignore contains both:
+
+```gitignore
+.workspace-memory/PAUSED
+.workspace-memory/
+```
+
+The folder rule also covers PAUSED; the explicit marker rule documents its local
+scope. Existing unrelated ignore rules are preserved, and dry-run previews edits.
+Already tracked memory remains tracked and is reported; the skill does not stage,
+commit, push, or change the Git index. Uninstall preserves these ignore rules.
+Ignored files can still be shared manually, so do not store secrets.
 
 ## Development
 
