@@ -34,16 +34,19 @@ and host settings; this skill manages only the shared `.workspace-memory` store.
 
 Default setup targets the current host only. Explicit `harness=all` targets the six
 named hosts; an explicit list targets that set. Deduplicate identical destinations.
-Install the same managed rule in each required effective file, not the remembered
-facts. All hosts use the same store. Updates refresh each requested destination;
+Install only the loader from assets/agents-loader.md in each effective file. Keep
+the full rule once at .workspace-memory/AGENTS.md, ignored with the memory store.
+All hosts use that same rule and store. The loader retains automatic recall/save
+triggers and control guards; detailed rules load only before memory operations
+and are reused while unchanged and in context. Updates refresh the rule and requested loaders;
 do not change unrequested hosts. Concurrent agents must reread before writes and
 avoid overwriting newer content; no lock or transactional multi-agent guarantee exists.
 
 Use root destinations by default. A custom instruction file must remain inside the
 workspace, be an actual always-loaded project instruction mechanism, and preserve
 any required host frontmatter. Memory paths always resolve from the chosen workspace
-root, even when instructions are in a subdirectory. Do not substitute a plain link
-for automatic loading; imports need verified host support. Don't install all adapters
+root, even when instructions are in a subdirectory. Use an explicit read-and-follow instruction, not a plain Markdown link. This is
+agent-mediated loading, not a native import; existing imports need verified host support. Don't install all adapters
 to compensate for uncertainty. No symlinks or host configuration changes are needed.
 
 For Copilot, use an agent-capable surface with skills and repository instructions enabled.
@@ -51,6 +54,12 @@ Preserve existing `.github/copilot-instructions.md` content. Memory paths resolv
 the repository root, not `.github/`. Availability varies by Copilot surface; do not
 promise automatic writes in code review or completions. Use the supported skill
 selector or natural language; no universal Copilot slash syntax is assumed.
+
+Codex loads at most one instruction file per directory. An arbitrary AGENTS.memory.md
+is not automatically additive; configured fallback names are used only after the
+standard names. Keep the loader in the effective AGENTS.md or AGENTS.override.md.
+The nested .workspace-memory/AGENTS.md is read because the loader requests it,
+not because Codex automatically discovers it for the whole workspace.
 
 ## Invocation and validation
 

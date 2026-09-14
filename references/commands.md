@@ -31,12 +31,12 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | Action | Behavior |
 | --- | --- |
 | `help` | Show a compact command list and examples. `help <action>` shows only that action. No workspace inspection needed. |
-| `enable` / `update` | Run SKILL.md setup workflow; update refreshes the managed rule. Preview only for dry-run. |
+| `enable` / `update` | Run SKILL.md setup workflow; update refreshes the separate rule and selected project loaders. Preview only for dry-run. |
 | `uninstall` | Remove workspace memory, controls, and managed project instructions across hosts; see full removal below. |
 | `pause` | Persistently block knowledge writes in this workspace; reads remain allowed. |
 | `skip` | Stop memory retrieval, use, and knowledge writes for this session only. |
 | `resume` | Clear the selected controls; default both. Do not backfill skipped knowledge. |
-| `status` | Report resolved root, effective rule presence, entry-point presence/size, topic count, and whether memory is empty. Use metadata and index reads; do not claim a full health audit. |
+| `status` | Report resolved root, loader presence, separate rule presence, entry-point presence/size, topic count, and whether memory is empty. Use metadata and index reads; do not claim a full health audit. |
 | `list` | Enumerate saved knowledge entries, not just filenames. Return a paginated list with selectors, short faithful summaries, and source file/heading. Exclude scaffolding and index links. |
 | `search` / `recall` | Find relevant entries by words or semantic question. Return matches with selectors, concise excerpts, and sources; distinguish stored claims from live-verified facts. |
 | `show` | Show the complete selected entry, its source, scope, and existing evidence pointers. Include subordinate details belonging to that entry; omit unrelated entries. |
@@ -108,10 +108,12 @@ needed for an unambiguous explicit uninstall within host permissions.
    ambiguous blocks, preserve uncertain content and report incomplete removal.
    Remove a dedicated import only when its target is verified to contain solely
    this managed rule; never modify targets outside the workspace.
-3. Delete the workspace's `.workspace-memory/` store, including topics and PAUSED.
+3. Delete the workspace's `.workspace-memory/` store, including its managed AGENTS.md, topics and PAUSED.
    Validate absolute paths and every descendant before recursive removal; reject
    symlinks, junctions, redirected paths, or paths outside that exact store. If
    unrelated files were placed inside it, preserve those files and report them.
+   If AGENTS.md contains unrelated custom instructions outside its managed block,
+   remove only that block and preserve/report the remainder.
    Delete empty memory directories. Do not create backups or archives.
 4. Remove verified workspace-local installations of this skill from the supported
    project skill locations in the harness guide, if present. Verify their SKILL.md
@@ -177,7 +179,9 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
   or generic), or `--instruction-file` for a verified custom path. The helper defaults
   to generic AGENTS.md and never guesses the running host. Multiple-host status requires
   one call per host. These flags are rejected for other helper actions.
-- Status describes selected instruction markers and selected file metadata plus an
+- Status reports loader_present and managed_rule_present separately; setup_complete
+  requires both. It inspects the selected loader and fixed .workspace-memory/AGENTS.md
+  target, but cannot prove agent execution. Status also reports file metadata plus an
   early-stop emptiness check. It does not prove effective instructions in every nested
   directory, resolve imports, or prove host loading. If the rule is imported, inspect
   that import and its target with native file tools before concluding setup is absent.
@@ -209,7 +213,7 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
 - Match natural-language labels without silently widening scope. Multi-entry changes
   require explicit selectors or a clearly requested set. An explicit request to forget all saved knowledge defines a set; list the affected files in dry-run if requested,
   otherwise remove only memory knowledge within scope, preserving unrelated workspace
-  files, installed instructions, skill files, and Git history. Do not expose sensitive
+  files, installed instructions (including .workspace-memory/AGENTS.md), skill files, and Git history. Do not expose sensitive
   content if encountered; report its location/category without reproducing it.
 
 ## Mutation boundaries and completion

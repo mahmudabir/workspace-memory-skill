@@ -110,9 +110,9 @@ class MemoryTests(unittest.TestCase):
     def test_status_rejects_incomplete_or_reversed_markers(self):
         begin, end = '<!-- workspace-memory:begin -->', '<!-- workspace-memory:end -->'
         for text in (begin, end + begin, begin + end + begin):
-            self.put('AGENTS.md', text)
+            self.put('.workspace-memory/AGENTS.md', text)
             self.assertFalse(self.call('status')['managed_rule_present'])
-        self.put('AGENTS.md', begin + '\nMemory rule\n' + end)
+        self.put('.workspace-memory/AGENTS.md', begin + '\nMemory rule\n' + end)
         self.assertTrue(self.call('status')['managed_rule_present'])
 
     def test_pause_status_does_not_create_or_list_control_as_knowledge(self):
@@ -126,7 +126,8 @@ class MemoryTests(unittest.TestCase):
         self.assertFalse(self.call('status')['writes_paused'])
 
     def test_host_specific_status_and_override_scope(self):
-        rule = '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->'
+        self.put('.workspace-memory/AGENTS.md', '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->')
+        rule = '<!-- workspace-memory:begin -->\nRead .workspace-memory/AGENTS.md\n<!-- workspace-memory:end -->'
         for filename in ('AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md'):
             self.put(filename, rule)
         self.put('AGENTS.override.md', 'Unrelated Codex override')
@@ -136,18 +137,33 @@ class MemoryTests(unittest.TestCase):
                                ('generic', 'AGENTS.md'), ('codex', 'AGENTS.override.md')):
             result = self.call('status', '--harness', host)
             self.assertEqual(Path(result['instruction_file']).relative_to(self.root).as_posix(), filename)
-            self.assertEqual(result['managed_rule_present'], host != 'codex')
+            self.assertTrue(result['managed_rule_present'])
+            self.assertEqual(result['setup_complete'], host != 'codex')
 
     def test_custom_instruction_path_and_invalid_options(self):
-        rule = '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->'
+        self.put('.workspace-memory/AGENTS.md', '<!-- workspace-memory:begin -->\nRule\n<!-- workspace-memory:end -->')
+        rule = '<!-- workspace-memory:begin -->\nRead .workspace-memory/AGENTS.md\n<!-- workspace-memory:end -->'
         self.put('.claude/CLAUDE.md', rule)
-        self.assertTrue(self.call('status', '--instruction-file', '.claude/CLAUDE.md')['managed_rule_present'])
+        self.assertTrue(self.call('status', '--instruction-file', '.claude/CLAUDE.md')['setup_complete'])
         for path in ('../outside.md', str(self.root / 'absolute.md')):
             with self.assertRaises(ValueError):
                 self.call('status', '--instruction-file', path)
         for args in (('list', '--harness', 'claude'), ('check', '--instruction-file', 'AGENTS.md')):
             with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
                 self.call(*args)
+
+    def test_loader_requires_rule_and_neither_is_saved_knowledge(self):
+        self.put('AGENTS.md', '<!-- workspace-memory:begin -->\nRead .workspace-memory/AGENTS.md\n<!-- workspace-memory:end -->')
+        status = self.call('status')
+        self.assertTrue(status['loader_present'])
+        self.assertFalse(status['setup_complete'])
+        self.put('.workspace-memory/AGENTS.md', '<!-- workspace-memory:begin -->\n- Instruction, not knowledge.\n<!-- workspace-memory:end -->')
+        self.assertTrue(self.call('status')['setup_complete'])
+        self.assertTrue(self.call('status')['empty'])
+        self.assertEqual(self.call('list')['entries'], [])
+        self.assertEqual(self.call('check')['issues'], [])
+        self.put('AGENTS.md', '<!-- workspace-memory:begin -->\nUnrelated block\n<!-- workspace-memory:end -->')
+        self.assertFalse(self.call('status')['setup_complete'])
 
     def test_cli_returns_bounded_json_for_large_memory(self):
         content = '# Memory\n## Decisions\n' + ''.join(

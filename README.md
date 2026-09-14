@@ -76,8 +76,19 @@ Other hosts can use their skill picker or natural language. Dollar and slash
 prefixes are not universal shell commands. A new session may be needed to load
 new project instructions.
 
-Setup adds a managed rule while preserving unrelated instructions. It does not
-scan the application to invent memories or create an empty memory store.
+Setup saves the full rule in `.workspace-memory/AGENTS.md` and adds only a small
+managed loader to the repository's existing instruction file. The loader tells the
+agent to evaluate automatic recall and saving at the relevant work milestones.
+It reads the separate rule only before a memory operation and reuses it while
+unchanged and in context; trivial work does not require loading it. This is
+agent-mediated loading, not a native import.
+The entire `.workspace-memory/` folder, including its rule, is gitignored.
+The repository instruction file remains tracked with its small loader.
+
+Setup preserves unrelated instructions and creates no empty MEMORY.md or topics.
+It does not scan the application to invent memories. Codex does not automatically
+load an arbitrary AGENTS.memory.md alongside AGENTS.md; the loader provides access
+to the separate rule. See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
 After meaningful work, the agent can save verified, useful knowledge automatically.
 It operates during agent work, not as a background service.
 
@@ -87,6 +98,7 @@ All paths are relative to the project workspace root:
 
 ```text
 .workspace-memory/
+  AGENTS.md       # Separate memory instructions, installed during setup
   MEMORY.md       # Compact knowledge and, when needed, a topic index
   topics/         # Optional topic files created as knowledge grows
   PAUSED          # Present only while persistent writes are paused
@@ -172,7 +184,7 @@ $workspace-memory uninstall dry-run=true
 $workspace-memory uninstall
 ```
 
-Uninstall deletes saved memory and the pause marker, removes managed memory rules
+Uninstall deletes saved memory, the separate instruction rule, and the pause marker, removes managed loaders
 across project instruction files, and removes verified project-local skill copies.
 It preserves unrelated content, Git history, and personal/global skill installations.
 It works while paused or skipped. Removal uses native file tools, without requiring
@@ -269,3 +281,4 @@ integration or model compliance.
 - [Commands](references/commands.md)
 - [Harness integration](references/harnesses.md)
 - [Installable memory rule](assets/agents-memory.md)
+- [Project instruction loader](assets/agents-loader.md)

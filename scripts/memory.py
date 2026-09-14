@@ -42,6 +42,14 @@ def files(root):
     return sorted(found, key=lambda p: p.relative_to(root).as_posix())
 
 
+def managed_block(text):
+    begin, end = '<!-- workspace-memory:begin -->', '<!-- workspace-memory:end -->'
+    if text.count(begin) != 1 or text.count(end) != 1:
+        return ''
+    start, stop = text.index(begin), text.index(end)
+    return text[start + len(begin):stop].strip() if start < stop else ''
+
+
 def read(path):
     return path.read_text(encoding='utf-8-sig')
 
@@ -208,17 +216,20 @@ def main(argv=None):
         result['writes_paused'] = pause_marker.exists()
         result['session_usage'] = 'Not observable by helper; use conversation state'
         result['harness'] = harness
-        result['instruction_scope'] = 'Direct file markers only; imports and host loading not evaluated'
+        result['instruction_scope'] = 'Selected loader and fixed rule target only; imports and host execution not evaluated'
         instruction_text = read(instructions) if instructions.is_file() else ''
+        rule_file = safe(root, root / '.workspace-memory/AGENTS.md')
+        rule_text = read(rule_file) if rule_file.is_file() else ''
+        loader_present = '.workspace-memory/AGENTS.md' in managed_block(instruction_text)
+        rule_present = bool(managed_block(rule_text))
         index = root / '.workspace-memory/MEMORY.md'
         result.update(index_exists=index in all_files,
                       index_bytes=index.stat().st_size if index in all_files else 0,
                       topic_files=sum(p != index for p in selected),
                       memory_files=len(selected), empty=not any(scan(root, selected)),
-                      managed_rule_present=(instruction_text.count('<!-- workspace-memory:begin -->') == 1
-                                            and instruction_text.count('<!-- workspace-memory:end -->') == 1
-                                            and instruction_text.index('<!-- workspace-memory:begin -->')
-                                            < instruction_text.index('<!-- workspace-memory:end -->')),
+                      loader_present=loader_present, managed_rule_present=rule_present,
+                      setup_complete=loader_present and rule_present,
+                      rule_file=str(rule_file),
                       instruction_file= str(instructions), audit=False)
     elif args.action == 'check':
         issues = check(root, selected, all_files)

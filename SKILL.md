@@ -7,7 +7,8 @@ description: Enable, list, search, show, add, edit, delete, compact, repair, or 
 
 Provide portable, selective memory with no language, platform, or runtime dependency.
 Skill selection alone is not an always-on hook: setup installs a self-contained
-behavioral rule so future work does not depend on selecting this skill again.
+loader and a separate ignored behavioral rule so future work does not depend on
+selecting this skill again.
 
 ## Commands and parameters
 
@@ -88,16 +89,26 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    effective project instruction file. Honor explicit harness/instruction-file arguments;
    do not infer the running host from installed folders. Read applicable instructions
    and relevant existing memory to detect equivalent systems; do not scan application code.
-3. Read [the installable rule](assets/agents-memory.md). Add it once to the selected
-   project instruction file, preserving unrelated content. Follow the integration
-   reference for imports, configured filenames, overrides, and multiple hosts.
-   Do not edit user-global instructions or change host settings.
+3. Read [the installable rule](assets/agents-memory.md) and install it at
+   `.workspace-memory/AGENTS.md` using the template-driven workflow. Create the
+   directory for this instruction file, without creating empty knowledge files.
+   Read [the loader sample](assets/agents-loader.md) and add only that small managed
+   block to each selected project instruction file, preserving unrelated content.
+   Follow the integration reference for configured filenames, overrides, and hosts.
+   Install the rule before its loaders. Do not change user-global instructions or
+   host settings. Keep automatic recall/save triggers and skip/pause guards in the
+   loader so persistence does not depend on selecting the skill. Load the separate
+   rule before a memory operation, reusing unchanged context; not on every task.
+   This is agent-mediated loading, not a native import.
 4. The HTML markers identify the managed block. On repeated setup, leave an
    identical block unchanged; replace only that block when updating it. If markers
    are malformed/duplicated, or a different existing memory system would conflict,
    reconcile only clearly equivalent content; ask about genuinely ambiguous choices.
+   Apply this to both the separate rule and project loaders. Replace an existing
+   complete inline workspace-memory block with the loader after installing the
+   separate rule; preserve intentional custom memory guidance in that rule.
    Never install competing rules or erase existing knowledge.
-5. Do not create an empty memory file/directory during setup. Keep the bundled
+5. Do not create empty MEMORY.md or topic files during setup. Keep the bundled
    [starter](assets/MEMORY.md) for first meaningful persistence, or explicit template
    requests. Topic directory guidance is already in the installed memory rule;
    do not create a redundant README when sharding begins.
@@ -114,7 +125,8 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    Ignore rules do not untrack existing files: report those paths without changing
    the index or history. Without Git, verify content and state that Git behavior
    was not tested. Report blocked ignore edits as incomplete setup.
-7. Verify the actual changed block, preservation of unrelated instructions, and any
+7. Verify the separate rule, each loader and its workspace-root target, ignore rules,
+   preservation of unrelated instructions, and any
    affected links. Report the installation path and explain that a new task/session
    may be needed to load changed instructions. Do not claim a fresh-session test
    unless performed. No automatic Git staging, committing, pushing, or index changes.
