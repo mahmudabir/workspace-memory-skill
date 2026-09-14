@@ -84,6 +84,7 @@ Use these actions with the skill invocation or equivalent natural language:
 | Action | Purpose |
 | --- | --- |
 | `enable` | Install the workspace memory instructions. Bare invocation also enables. |
+| `uninstall` | Remove saved memory, controls, managed project instructions, and verified project-local skill copies. |
 | `update` | Refresh the installed rule without clearing pause controls. |
 | `help` | Show commands or help for a specific action. |
 | `status` | Show setup, memory, and control state; during skip, show controls only. |
@@ -144,6 +145,22 @@ These controls are instructions followed by agents, not filesystem locks. Existi
 workspaces need `update` to receive new control rules; older active sessions may
 need to reload them.
 
+### Remove from a workspace
+
+```text
+$workspace-memory uninstall dry-run=true
+$workspace-memory uninstall
+```
+
+Uninstall deletes saved memory and the pause marker, removes managed memory rules
+across project instruction files, and removes verified project-local skill copies.
+It preserves unrelated content, Git history, and personal/global skill installations.
+It works while paused or skipped. Removal uses native file tools, without requiring
+Python. Unsafe paths or ambiguous content are preserved and reported.
+
+The current session stops using and saving memory. Use `enable` to set it up again;
+`resume` does not reinstall it. Refresh other active sessions so their old instructions
+do not recreate memory. See [full removal details](references/commands.md#full-workspace-removal).
 ### Parameters
 
 | Parameter | Use |

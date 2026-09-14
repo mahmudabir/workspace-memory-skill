@@ -1,6 +1,6 @@
 ---
 name: workspace-memory
-description: Enable, list, search, show, add, edit, delete, compact, or repair persistent workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
+description: Enable, list, search, show, add, edit, delete, compact, repair, or uninstall persistent workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
 ---
 
 # Workspace Memory
@@ -18,7 +18,7 @@ not a shell command or executable CLI. Never assume slash or dollar syntax is un
 Read [command reference](references/commands.md) for help or any action other than
 enable/update. Do not load the reference during ordinary automatic memory use.
 
-- Setup: `enable`, `update`.
+- Setup: `enable`, `update`, `uninstall` (remove workspace memory and its integration).
 - Controls: `pause`, `skip`, `resume` (see command reference).
 - Browse: `list`, `search`, `show`, `status`, `help`.
 - Manage: `add`, `edit`, `delete`.
