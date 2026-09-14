@@ -89,6 +89,13 @@ Setup preserves unrelated instructions and creates no empty MEMORY.md or topics.
 It does not scan the application to invent memories. Codex does not automatically
 load an arbitrary AGENTS.memory.md alongside AGENTS.md; the loader provides access
 to the separate rule. See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
+Lasting corrections and preferences (such as “never exclude scripts yourself;
+leave that to me”) trigger saving even in short follow-ups, without saying
+“remember.” The agent preserves your stated scope, saves or merges the decision,
+and briefly confirms its location. One-time requests and emotion alone do not
+become permanent rules. If memory is disabled, paused, skipped or blocked, it
+reports that the preference was not saved instead of bypassing the control.
+
 After meaningful work, the agent can save verified, useful knowledge automatically.
 It operates during agent work, not as a background service.
 
