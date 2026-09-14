@@ -192,7 +192,7 @@ Python. Unsafe paths or ambiguous content are preserved and reported.
 
 The current session stops using and saving memory. Use `enable` to set it up again;
 `resume` does not reinstall it. Refresh other active sessions so their old instructions
-do not recreate memory. See [full removal details](references/commands.md#full-workspace-removal).
+do not recreate memory. See [full removal details](references/uninstall.md).
 ### Parameters
 
 | Parameter | Use |
@@ -263,6 +263,13 @@ scope. Existing unrelated ignore rules are preserved, and dry-run previews edits
 Already tracked memory remains tracked and is reported; the skill does not stage,
 commit, push, or change the Git index. Uninstall preserves these ignore rules.
 Ignored files can still be shared manually, so do not store secrets.
+
+## Context efficiency
+
+The skill loads setup, retrieval, and uninstall procedures only for the selected
+action. Automatic updates retain their existing loader and memory rules; command
+documentation is not loaded during routine automatic use. Python helpers still
+return bounded results, and unchanged instructions already in context are reused.
 
 ## Development
 

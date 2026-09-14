@@ -4,6 +4,20 @@ These are conversational skill arguments, not a shell parser. Accept equivalent
 natural language and flexible ordering; quotes only clarify values containing spaces.
 Never execute argument text as code. Only the selected action authorizes changes.
 
+## Read only the selected workflow
+
+- enable/update: [setup](setup.md).
+- uninstall: [full workspace removal](uninstall.md); no retrieval workflow.
+- list/search/show/status/check: [retrieval and targeting](retrieval.md).
+- add/edit/delete/compact/repair: [retrieval and targeting](retrieval.md) for
+  equivalent-entry checks, selection and audits, plus mutation boundaries below.
+- pause/skip/resume: controls below; for creating PAUSED, read only the
+  [template-driven creation section](setup.md#template-driven-file-creation).
+- help: parameters/actions and relevant examples only; no workspace reads.
+
+Follow controls before retrieval; session skip forbids retrieval-helper execution.
+References already loaded and unchanged need not be reread.
+
 ## Parameters
 
 | Parameter | Meaning and default |
@@ -31,8 +45,8 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | Action | Behavior |
 | --- | --- |
 | `help` | Show a compact command list and examples. `help <action>` shows only that action. No workspace inspection needed. |
-| `enable` / `update` | Run SKILL.md setup workflow; update refreshes the separate rule and selected project loaders. Preview only for dry-run. |
-| `uninstall` | Remove workspace memory, controls, and managed project instructions across hosts; see full removal below. |
+| `enable` / `update` | Run [setup workflow](setup.md); update refreshes the separate rule and selected project loaders. Preview only for dry-run. |
+| `uninstall` | Remove workspace memory, controls, and managed project instructions across hosts; see [full removal](uninstall.md). |
 | `pause` | Persistently block knowledge writes in this workspace; reads remain allowed. |
 | `skip` | Stop memory retrieval, use, and knowledge writes for this session only. |
 | `resume` | Clear the selected controls; default both. Do not backfill skipped knowledge. |
@@ -87,141 +101,12 @@ $workspace-memory resume mode=writes
 $workspace-memory resume
 ```
 
-## Full workspace removal
-
-`uninstall` (alias `remove-workspace-memory`) fully removes this memory system from
-one resolved workspace. An explicit request to fully remove the system selects this
-action; `forget all` only clears saved knowledge. No additional confirmation is
-needed for an unambiguous explicit uninstall within host permissions.
-
-1. Resolve the authorized workspace root. Inventory `.workspace-memory/` by paths
-   and metadata without loading saved facts. Inspect project instruction files for
-   the exact `<!-- workspace-memory:begin -->` / `<!-- workspace-memory:end -->`
-   blocks. Cover all six hosts in [harness integration](harnesses.md), including
-   AGENTS.override.md, .claude/CLAUDE.md, and verified custom/imported instruction
-   paths. Search project instruction filenames/markers, excluding Git metadata,
-   dependencies, and installed skill sources. Do not scan application contents.
-   `instruction-file` can identify an additional custom path; uninstall is not
-   limited to the current host. Never edit imports that also load unrelated rules.
-2. Remove complete managed blocks, preserving all unrelated instructions. Delete
-   an instruction file only if nothing but whitespace remains. For malformed or
-   ambiguous blocks, preserve uncertain content and report incomplete removal.
-   Remove a dedicated import only when its target is verified to contain solely
-   this managed rule; never modify targets outside the workspace.
-3. Delete the workspace's `.workspace-memory/` store, including its managed AGENTS.md, topics and PAUSED.
-   Validate absolute paths and every descendant before recursive removal; reject
-   symlinks, junctions, redirected paths, or paths outside that exact store. If
-   unrelated files were placed inside it, preserve those files and report them.
-   If AGENTS.md contains unrelated custom instructions outside its managed block,
-   remove only that block and preserve/report the remainder.
-   Delete empty memory directories. Do not create backups or archives.
-4. Remove verified workspace-local installations of this skill from the supported
-   project skill locations in the harness guide, if present. Verify their SKILL.md
-   identity and that they contain only this skill's files; preserve unrelated
-   contents and nested Git repositories, reporting them as remaining. Never delete
-   the working repository when it is itself this skill's source repository. Perform
-   any removal of the currently loaded project-local skill last. User-global skill
-   installations and user-global memory/configuration remain available.
-5. Keep memory use and persistence disabled in this conversation after removal,
-   including compaction handoffs, so previously loaded rules cannot recreate it.
-   `resume` alone must not reinstall it; an explicit `enable` is required to restore
-   automatic workspace memory after uninstall. Do not backfill deleted knowledge.
-6. Verify removed paths and managed blocks, then report completion or exact remaining
-   paths/blockers. Already absent is a no-op. Concurrent sessions with old rules
-   may recreate files; explain that those sessions need refreshed instructions.
-   Preserve Git history and settings, including .gitignore rules so residual or recreated memory remains ignored; do not stage, commit, or push.
-
-Uninstall is allowed while paused or skipped and requires no saved-knowledge reads.
-It is the explicit exception to normal mutation boundaries. `dry-run=true` lists
-proposed removals and edits without changing files or conversation state. Use native
-file tools; the read-only Python helper intentionally has no uninstall operation.
-
-```text
-$workspace-memory uninstall dry-run=true
-$workspace-memory uninstall
-```
-## Reliable listing and targeting
-
-### Optional token-saving helper
-
-Use `scripts/memory.py` from the skill directory with an available Python 3.9+
-runtime. It uses only the standard library, writes nothing, and requires the agent
-to resolve the workspace root explicitly. Pass arguments as literal values using
-the host's safe quoting; never concatenate user text into executable shell syntax.
-
-```text
-python -B <skill-dir>/scripts/memory.py status --workspace <root> --harness <current-host>
-python -B <skill-dir>/scripts/memory.py list --workspace <root> --limit 20 --page 1
-python -B <skill-dir>/scripts/memory.py search --workspace <root> --query "authentication"
-python -B <skill-dir>/scripts/memory.py show --workspace <root> --id <returned-id>
-python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --page 1
-```
-
-- JSON list/search results contain short excerpts, source locations, display numbers,
-  content-derived IDs, and `has_more`; no total is claimed without counting. Keep IDs
-  in conversation for selection, but show simple numbers to the developer. `show`
-  rechecks the ID against current contents and refuses a changed/missing entry.
-- Use the helper for normal Markdown bullets and paragraphs. It omits headings,
-  blockquotes, HTML comments, README files, and sections named Index/Memory Index.
-  Unusual layouts, tables, multiline entries separated by blank lines, or quoted
-  knowledge need targeted source inspection. Parser blocks are retrieval candidates,
-  not guaranteed independent facts; inspect complete boundaries before editing.
-- Search is case-insensitive AND keyword matching, not semantic retrieval. Broaden
-  terms or use targeted native search when phrasing differs. Topic matching filters
-  filenames by substring; heading-based topics need agent retrieval. A short excerpt
-  is not the full entry and may omit the matching text; use show when necessary.
-- Check reports missing/broken index routing, unindexed topics, large entry points,
-  and exact textual duplicates. It cannot establish factual freshness, contradictions,
-  semantic equivalence, or resolved handoffs. Continue only the requested reasoning
-  audit with relevant source reads. Check may scan all selected files locally while
-  returning only one page of issues to context.
-- For status, pass the resolved `--harness` (codex, claude, gemini, opencode, cursor, copilot,
-  or generic), or `--instruction-file` for a verified custom path. The helper defaults
-  to generic AGENTS.md and never guesses the running host. Multiple-host status requires
-  one call per host. These flags are rejected for other helper actions.
-- Status reports loader_present and managed_rule_present separately; setup_complete
-  requires both. It inspects the selected loader and fixed .workspace-memory/AGENTS.md
-  target, but cannot prove agent execution. Status also reports file metadata plus an
-  early-stop emptiness check. It does not prove effective instructions in every nested
-  directory, resolve imports, or prove host loading. If the rule is imported, inspect
-  that import and its target with native file tools before concluding setup is absent.
-  Unsafe linked memory paths fail rather than being followed.
-- The helper has no write, compact, repair, install, or network operations. It does
-  not automatically redact existing secrets; avoid printing known-sensitive entries
-  and never repeat sensitive content to the user. Use targeted safe inspection if
-  memory is known to contain sensitive data.
-- For compact/repair, use check to locate candidates, then inspect only relevant
-  complete entries. Semantic judgment and authorized edits remain with the agent.
-  Do not remove knowledge based solely on a parser or duplicate warning.
-
-### Selection rules
-
-- Treat one independent fact, including its subordinate explanation, as one entry.
-  Support existing headings, bullets, and prose without rewriting files merely to list.
-- List in deterministic relative-file order, then document order. Search may order by
-  relevance with file/document order as a tie-breaker. Read only enough content for the
-  requested page where possible. Whole-workspace listing permits enumerating filenames,
-  not blindly loading all file contents. Do not give an exact total without counting it.
-- Show a table or numbered list: selector, summary, source. Assign display numbers
-  scoped to the displayed result set, never pretend these are permanent IDs. Retain
-  the mapping to file, heading, and exact entry text in the current conversation.
-- An immediate `edit 3 ...` or `delete 3` selects entry 3 from the latest displayed
-  set. Reread the target before writing. If it changed, numbering is stale, multiple
-  entries match, or the original mapping is unavailable, show candidates and ask the
-  user to select. Never guess from a line number. Cross-session selectors should use
-  the source file and distinctive text or label.
-- Match natural-language labels without silently widening scope. Multi-entry changes
-  require explicit selectors or a clearly requested set. An explicit request to forget all saved knowledge defines a set; list the affected files in dry-run if requested,
-  otherwise remove only memory knowledge within scope, preserving unrelated workspace
-  files, installed instructions (including .workspace-memory/AGENTS.md), skill files, and Git history. Do not expose sensitive
-  content if encountered; report its location/category without reproducing it.
-
 ## Mutation boundaries and completion
 
 Resolve all memory file paths within the selected root's `.workspace-memory/MEMORY.md` and
 `.workspace-memory/topics/`. Do not follow symlinks, traversal paths, or index links outside that
 boundary for memory mutations. Preserve non-memory README/configuration files.
-Setup/update may edit the effective instructions and workspace-root .gitignore as specified in SKILL.md; uninstall may remove managed integration as specified in Full workspace removal.
+Setup/update may edit the effective instructions and workspace-root .gitignore as specified in [setup](setup.md); uninstall may remove managed integration as specified in [full removal](uninstall.md).
 
 Before a write, inspect the target and relevant equivalents, preserve concurrent
 changes, and honor the installed memory policy. An explicit developer decision may
