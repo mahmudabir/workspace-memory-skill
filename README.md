@@ -11,6 +11,26 @@ knowledge, save useful findings, and maintain compact memory as it works.
 
 ## Installation
 
+### Global installation with npx
+
+With Node.js and npm installed, run from any directory:
+
+```sh
+npx skills add https://github.com/mahmudabir/workspace-memory-skill --skill workspace-memory --global
+```
+
+Choose your coding agents when prompted. `--global` installs the skill for your
+user account, making it available across projects for the selected agents.
+To target Codex directly, append `--agent codex`.
+See the [skills CLI documentation](https://github.com/vercel-labs/skills#installation-scope)
+for installation options.
+
+Global installation does not enable memory in every project automatically.
+Follow [Quick start](#quick-start) in each workspace; saved memory stays in that
+workspace's `.workspace-memory/` directory.
+
+### Manual project installation
+
 Clone this repository into your harness's project skill directory. For example,
 from the project root, for GitHub Copilot:
 
