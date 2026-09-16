@@ -80,7 +80,8 @@ class MemoryTests(unittest.TestCase):
             self.call('list')
 
     def test_invalid_arguments_and_no_matching_topic(self):
-        for args in [('search',), ('show',), ('list', '--limit', '0'), ('list', '--query', 'x')]:
+        for args in [('search',), ('show',), ('record-use',), ('list', '--limit', '0'),
+                     ('list', '--query', 'x'), ('summary', '--topic', 'x')]:
             with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
                 self.call(*args)
         with self.assertRaisesRegex(ValueError, 'No matching'):
@@ -177,6 +178,75 @@ class MemoryTests(unittest.TestCase):
         self.assertTrue(result['has_more'])
         self.assertLess(len(run.stdout.encode()), path.stat().st_size // 10)
         self.assertEqual(path.read_text(encoding='utf-8'), content)
+
+    def test_summary_counts_sources_and_records_material_entry_uses(self):
+        self.put('.workspace-memory/MEMORY.md', '# Memory\n## Core\n- Entry point fact.\n')
+        self.put('.workspace-memory/topics/testing.md', '# Testing\n- First test fact.\n- Second test fact.\n')
+
+        self.assertFalse(self.call('summary')['summary']['exists'])
+        self.assertFalse((self.root / '.workspace-memory/SUMMARY.md').exists())
+        refreshed = self.call('refresh-summary')['summary']
+        self.assertEqual(refreshed['total_entries'], 3)
+        self.assertEqual(refreshed['total_uses'], 0)
+        rows = {row['source']: row for row in refreshed['sources']}
+        self.assertEqual(rows['.workspace-memory/MEMORY.md']['entries'], 1)
+        self.assertEqual(rows['.workspace-memory/topics/testing.md']['entries'], 2)
+        self.assertFalse(self.call('refresh-summary')['summary']['updated'])
+
+        entries = self.call('list')['entries']
+        topic_ids = [entry['id'] for entry in entries
+                     if entry['file'] == '.workspace-memory/topics/testing.md']
+        used = self.call('record-use', '--entry-id', topic_ids[0], '--entry-id', topic_ids[1])['summary']
+        self.assertEqual(used['total_entries'], 3)
+        self.assertEqual(used['total_uses'], 2)
+        rows = {row['source']: row for row in used['sources']}
+        self.assertEqual(rows['.workspace-memory/topics/testing.md']['uses'], 2)
+        self.assertEqual(rows['.workspace-memory/MEMORY.md']['uses'], 0)
+
+        summary_path = self.root / '.workspace-memory/SUMMARY.md'
+        before = summary_path.read_bytes()
+        self.assertEqual(self.call('summary')['summary']['total_uses'], 2)
+        self.assertEqual(summary_path.read_bytes(), before)
+        self.assertEqual(len(self.call('list')['entries']), 3)
+
+        with self.assertRaisesRegex(ValueError, 'unique'):
+            self.call('record-use', '--entry-id', topic_ids[0], '--entry-id', topic_ids[0])
+
+        self.put('.workspace-memory/topics/testing.md', '# Testing\n- First test fact.\n'
+                 '- Second test fact.\n- Added test fact.\n')
+        refreshed = self.call('refresh-summary')['summary']
+        rows = {row['source']: row for row in refreshed['sources']}
+        self.assertEqual(refreshed['total_entries'], 4)
+        self.assertEqual(rows['.workspace-memory/topics/testing.md']['entries'], 3)
+        self.assertEqual(rows['.workspace-memory/topics/testing.md']['uses'], 2)
+
+    def test_summary_is_not_memory_or_created_for_empty_store(self):
+        self.put('.workspace-memory/SUMMARY.md', '# Workspace Memory Summary\n\n'
+                 '> Auto-managed usage metadata. This file is excluded from normal memory retrieval.\n\n'
+                 '- Total entries: 0\n- Total uses: 0\n\n'
+                 '| Source | Entries | Uses |\n| --- | ---: | ---: |\n')
+        self.assertEqual(self.call('list')['entries'], [])
+        self.assertEqual(self.call('check')['issues'], [])
+        self.assertTrue(self.call('status')['empty'])
+        self.assertTrue(self.call('summary')['summary']['exists'])
+        refreshed = self.call('refresh-summary')['summary']
+        self.assertTrue(refreshed['updated'])
+        self.assertFalse(refreshed['exists'])
+
+    def test_malformed_summary_is_replaced_by_refresh(self):
+        self.put('.workspace-memory/MEMORY.md', '# Memory\n- A fact.\n')
+        self.put('.workspace-memory/SUMMARY.md', 'manual notes\n')
+        with self.assertRaisesRegex(ValueError, 'malformed'):
+            self.call('summary')
+        refreshed = self.call('refresh-summary')['summary']
+        self.assertEqual(refreshed['total_entries'], 1)
+        self.assertEqual(refreshed['total_uses'], 0)
+
+    def test_refresh_does_not_create_summary_for_scaffolding_only(self):
+        self.put('.workspace-memory/MEMORY.md', '# Workspace Memory\n## Memory Index\n')
+        refreshed = self.call('refresh-summary')['summary']
+        self.assertFalse(refreshed['exists'])
+        self.assertFalse((self.root / '.workspace-memory/SUMMARY.md').exists())
 
 
 if __name__ == '__main__':

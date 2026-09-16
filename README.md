@@ -35,6 +35,7 @@ store with explicit, agent-assisted management.
 | Cross-agent portability | Host- or agent-dependent | The same store can be used by supported agents in the workspace |
 | Human auditability | Host-dependent | High; inspectable entries, sources, and checks |
 | Topic organization | Varies by host | Explicit topics and an index |
+| Usage visibility | Host-dependent | Auto-managed totals and per-source material-use counts |
 | Workspace handoff | Host-dependent | Core use case |
 
 ### When to use each
@@ -161,6 +162,7 @@ All paths are relative to the project workspace root:
   AGENTS.md       # Separate memory instructions, installed during setup
   MEMORY.md       # Compact knowledge and, when needed, a topic index
   topics/         # Optional topic files created as knowledge grows
+  SUMMARY.md      # Auto-managed entry and material-use counts; never recalled
   PAUSED          # Present only while persistent writes are paused
 ```
 
@@ -188,7 +190,7 @@ instruction or policy file.
 The memory store is explicitly manageable through:
 
 ```text
-list       search     show       add
+list       search     show       summary     add
 edit       delete     compact    check
 repair     pause      skip       resume
 ```
@@ -253,6 +255,7 @@ Use these actions with the skill invocation or equivalent natural language:
 | `update` | Refresh the installed rule without clearing pause controls. |
 | `help` | Show commands or help for a specific action. |
 | `status` | Show setup, memory, and control state; during skip, show controls only. |
+| `summary` | Display total and source-file memory/use counts from SUMMARY.md. |
 | `list` | List saved knowledge with selectable numbers and sources. |
 | `search` / `recall` | Find relevant saved knowledge. |
 | `show` | Display a selected entry. |
@@ -273,6 +276,7 @@ These examples use Codex notation; adapt the invocation for your host.
 ```text
 $workspace-memory list limit=20 page=1
 $workspace-memory search query="authentication decisions"
+$workspace-memory summary
 $workspace-memory show target=3
 $workspace-memory add topic="testing" text="Use an isolated database for integration tests."
 $workspace-memory edit target=3 text="Use a separate database for each integration test run."
@@ -357,12 +361,17 @@ python -B scripts/memory.py status --workspace /path/to/project --harness copilo
 python -B scripts/memory.py list --workspace /path/to/project --limit 20
 python -B scripts/memory.py search --workspace /path/to/project --query "testing"
 python -B scripts/memory.py check --workspace /path/to/project
+python -B scripts/memory.py summary --workspace /path/to/project
+python -B scripts/memory.py refresh-summary --workspace /path/to/project
+python -B scripts/memory.py record-use --workspace /path/to/project --entry-id <id>
 ```
 
 Quote paths as required by your shell. Some systems use `python3` instead of `python`.
 
-`memory.py` returns compact JSON and never writes files. Its keyword search and
-structural checks do not establish factual freshness or semantic equivalence.
+`memory.py` returns compact JSON. Its normal inspection actions never write files;
+the narrowly scoped `record-use` and `refresh-summary` actions update only the
+auto-managed `SUMMARY.md`. Its keyword search and structural checks do not establish
+factual freshness or semantic equivalence.
 Session skip belongs to the conversation and cannot be detected by the helper;
 while skipped, the agent must not call retrieval helpers, including normal status.
 
@@ -401,8 +410,9 @@ Ignored files can still be shared manually, so do not store secrets.
 
 The skill loads setup, retrieval, and uninstall procedures only for the selected
 action. Automatic updates retain their existing loader and memory rules; command
-documentation is not loaded during routine automatic use. Python helpers still
-return bounded results, and unchanged instructions already in context are reused.
+documentation is not loaded during routine automatic use. `SUMMARY.md` is metadata
+only and is excluded from ordinary retrieval. Python helpers still return bounded
+results, and unchanged instructions already in context are reused.
 
 ## Development
 

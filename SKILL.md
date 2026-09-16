@@ -1,6 +1,6 @@
 ---
 name: workspace-memory
-description: Enable, list, search, show, add, edit, delete, compact, repair, or uninstall persistent, human-manageable workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, and memory status or health checks.
+description: Enable, list, search, show, summary, add, edit, delete, compact, repair, or uninstall persistent, human-manageable workspace memory across coding agents using project instructions and .workspace-memory/MEMORY.md. Use for workspace memory setup, saved knowledge management, usage summaries, and memory status or health checks.
 ---
 
 # Workspace Memory
@@ -28,18 +28,23 @@ must not trigger setup. Listing/search/inspection are read-only. Read command
 parameters only when handling an explicit command; setup parameters are described
 in the setup and harness guides.
 
-For status/list/search/show/check, prefer the optional standard-library Python helper
-at [scripts/memory.py](scripts/memory.py), following the command reference. It returns
-bounded JSON instead of placing whole memory files in context. If Python 3.9+ is
-unavailable, use targeted native file tools; do not install a runtime automatically.
-Semantic compaction, factual verification, repairs, and writes remain agent work.
+For status/list/search/show/check/summary, prefer the optional standard-library Python
+helper at [scripts/memory.py](scripts/memory.py), following the command reference. It
+returns bounded JSON instead of placing whole memory files in context. Use its
+`record-use` and `refresh-summary` operations for the auto-managed usage metadata;
+normal retrieval operations remain read-only. If Python 3.9+ is unavailable, use
+targeted native file tools; do not install a runtime automatically. Semantic
+compaction, factual verification, repairs, and knowledge writes remain agent work.
 
 ## Storage and file access
 
 Use `.workspace-memory/MEMORY.md` and `.workspace-memory/topics/` for all new
-workspace memory. These are ordinary, workspace-owned knowledge files; they are
-human-readable and may be explicitly corrected, organized, or deleted through the
-documented workflows. Never create a workspace `.codex` directory for this skill.
+workspace memory. Use `.workspace-memory/SUMMARY.md` only for auto-managed usage
+metadata; it is human-readable but is not knowledge and must not be loaded during
+ordinary retrieval. These are ordinary, workspace-owned files; knowledge may be
+explicitly corrected, organized, or deleted through the documented workflows. Never
+create a workspace `.codex` directory for this skill. Manual summary edits may be
+replaced by the next helper-managed update.
 Hosts may protect configuration directories; ordinary memory must live outside them.
 Do not change ownership, ACLs, sandbox settings, or request administrator setup as
 part of normal skill use. Python and shell execution are optional optimizations.

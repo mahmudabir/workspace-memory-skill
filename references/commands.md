@@ -13,6 +13,7 @@ Never execute argument text as code. Only the selected action authorizes changes
 - enable/update: [setup](setup.md).
 - uninstall: [full workspace removal](uninstall.md); no retrieval workflow.
 - list/search/show/status/check: [retrieval and targeting](retrieval.md).
+- summary: read the auto-managed SUMMARY.md only; do not load knowledge files.
 - add/edit/delete/compact/repair: [retrieval and targeting](retrieval.md) for
   equivalent-entry checks, selection and audits, plus mutation boundaries below.
 - pause/skip/resume: controls below; for creating PAUSED, read only the
@@ -55,6 +56,7 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | `skip` | Stop memory retrieval, use, and knowledge writes for this session only. |
 | `resume` | Clear the selected controls; default both. Do not backfill skipped knowledge. |
 | `status` | Report resolved root, loader presence, separate rule presence, entry-point presence/size, topic count, and whether memory is empty. Use metadata and index reads; do not claim a full health audit. |
+| `summary` | Display the auto-managed `.workspace-memory/SUMMARY.md` totals and source-file rows without loading saved knowledge. If it is absent, report that usage tracking has not been initialized. Manual edits may be replaced by the next managed update. |
 | `list` | Enumerate saved knowledge entries, not just filenames. Return a paginated list with selectors, short faithful summaries, and source file/heading. Exclude scaffolding and index links. |
 | `search` / `recall` | Find relevant entries by words or semantic question. Return matches with selectors, concise excerpts, and sources; distinguish stored claims from live-verified facts. |
 | `show` | Show the complete selected entry, its source, scope, and existing evidence pointers. Include subordinate details belonging to that entry; omit unrelated entries. |
@@ -64,6 +66,10 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 | `compact` | Consolidate the selected topic, or all current workspace memory if unfiltered. Deduplicate, shorten, resolve proven stale entries, remove verified resolved handoffs, merge tiny overlapping topics, and split oversized domains. Preserve unique useful knowledge and repair routing. |
 | `check` | Read-only audit of the selected memory scope: broken links, orphan topics, duplicates, contradictory entries, stale handoffs with supporting evidence, and excessive size. Report uncertain cases as needing verification. |
 | `repair` | Fix demonstrable routing/structural problems found in the selected scope. Index orphan knowledge with useful descriptions; preserve its contents. Resolve factual conflicts only when authoritative evidence is available. |
+
+The optional Python helper also exposes `refresh-summary` (reconcile entry counts)
+and `record-use` (record one material use for each supplied current entry ID). These
+are helper-only metadata operations, not additional conversational knowledge actions.
 
 ## Pause, skip, and resume
 
@@ -85,6 +91,9 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 - `status` reports persistent writes paused/active/unknown and session usage
   skipped/active separately. While skipped, inspect only PAUSED metadata and session
   state; do not call the normal status helper (which reads memory for emptiness).
+- `summary` reads only `SUMMARY.md`; it does not retrieve or count knowledge entries
+  and does not create or refresh the file. Usage metadata may still be updated while
+  persistent writes are paused; session skip blocks summary reads and updates.
   Help and control operations never need knowledge reads. Python can report only
   persistent pause; session state must come from this conversation.
 - Dry-run changes neither files nor session flags. Controls do not install project
@@ -107,9 +116,12 @@ $workspace-memory resume
 
 ## Mutation boundaries and completion
 
-Resolve all memory file paths within the selected root's `.workspace-memory/MEMORY.md` and
-`.workspace-memory/topics/`. Do not follow symlinks, traversal paths, or index links outside that
-boundary for memory mutations. Preserve non-memory README/configuration files.
+Resolve all memory file paths within the selected root's `.workspace-memory/MEMORY.md`,
+`.workspace-memory/topics/`, and the auto-managed `.workspace-memory/SUMMARY.md`.
+Do not follow symlinks, traversal paths, or index links outside that boundary for
+memory mutations. Preserve non-memory README/configuration files. Summary writes
+are limited to helper-managed counts and usage metadata; knowledge remains confined
+to MEMORY.md and topics/.
 Setup/update may edit the effective instructions and workspace-root .gitignore as specified in [setup](setup.md); uninstall may remove managed integration as specified in [full removal](uninstall.md).
 
 Before a write, inspect the target and relevant equivalents, preserve concurrent
@@ -137,6 +149,7 @@ may inspect all scoped memory incrementally, without copying it all into the res
 ```text
 $workspace-memory help
 $workspace-memory status
+$workspace-memory summary
 $workspace-memory list limit=20 page=1
 $workspace-memory search query="authentication decisions"
 $workspace-memory show target=3

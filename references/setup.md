@@ -59,10 +59,13 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    complete inline workspace-memory block with the loader after installing the
    separate rule; preserve intentional custom memory guidance in that rule.
    Never install competing rules or erase existing knowledge.
-5. Do not create empty MEMORY.md or topic files during setup. Keep the bundled
-   [starter](../assets/MEMORY.md) for first meaningful persistence, or explicit template
-   requests. Topic directory guidance is already in the installed memory rule;
-   do not create a redundant README when sharding begins.
+5. Do not create empty MEMORY.md, topic files, or SUMMARY.md during setup. Keep the
+   bundled [starter](../assets/MEMORY.md) for first meaningful persistence, or explicit
+   template requests. When updating a workspace that already has saved knowledge,
+   initialize or refresh its auto-managed `.workspace-memory/SUMMARY.md` with the
+   helper's `refresh-summary` operation; it is metadata, not retrievable knowledge.
+   Topic directory guidance is already in the installed memory rule; do not create
+   a redundant README when sharding begins.
 6. Ensure the workspace-root .gitignore contains both explicit rules:
    - .workspace-memory/PAUSED
    - .workspace-memory/

@@ -1,4 +1,8 @@
-"""Read-only workspace memory inspection. Python 3.9+, standard library only."""
+"""Bounded workspace memory inspection and usage-summary metadata updates.
+
+Python 3.9+, standard library only. Normal inspection actions are read-only;
+summary metadata is the only writable surface.
+"""
 import argparse
 import hashlib
 import json
@@ -123,6 +127,101 @@ def scan(root, selected):
         yield from entries(root, path)
 
 
+SUMMARY_NAME = '.workspace-memory/SUMMARY.md'
+
+
+def summary_path(root):
+    return safe(root, root / SUMMARY_NAME)
+
+
+def summary_rows(root):
+    """Return cached source usage counts without reading knowledge content."""
+    path = summary_path(root)
+    if path.exists() and not path.is_file():
+        raise ValueError('Summary path is not a regular file')
+    if not path.is_file():
+        return {'path': SUMMARY_NAME, 'exists': False, 'total_entries': 0,
+                'total_uses': 0, 'sources': []}
+    text = read(path)
+    total_entries = re.search(r'^- Total entries:\s*(\d+)\s*$', text, re.M)
+    total_uses = re.search(r'^- Total uses:\s*(\d+)\s*$', text, re.M)
+    sources = []
+    table = re.compile(r'^\|\s*`([^`]+)`\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*$', re.M)
+    for match in table.finditer(text):
+        sources.append({'source': match[1], 'entries': int(match[2]),
+                        'uses': int(match[3])})
+    if total_entries is None or total_uses is None:
+        raise ValueError('Summary is malformed; refresh it before use')
+    return {'path': SUMMARY_NAME, 'exists': True,
+            'total_entries': int(total_entries[1]), 'total_uses': int(total_uses[1]),
+            'sources': sources}
+
+
+def render_summary(sources):
+    total_entries = sum(item['entries'] for item in sources)
+    total_uses = sum(item['uses'] for item in sources)
+    template = (Path(__file__).resolve().parents[1] / 'assets' / 'SUMMARY.md').read_text(
+        encoding='utf-8')
+    rows = '\n'.join(f"| `{item['source']}` | {item['entries']} | {item['uses']} |"
+                     for item in sources)
+    return (template.replace('{{TOTAL_ENTRIES}}', str(total_entries))
+            .replace('{{TOTAL_USES}}', str(total_uses))
+            .replace('{{SOURCE_ROWS}}', rows))
+
+
+def refresh_summary(root, used_ids=None):
+    """Reconcile source entry counts and optionally record one use per entry ID."""
+    all_files = files(root)
+    selected = all_files
+    current = {path.relative_to(root).as_posix(): list(entries(root, path))
+               for path in selected}
+    try:
+        old = summary_rows(root)
+    except ValueError as error:
+        if not str(error).startswith('Summary is malformed'):
+            raise
+        # The next managed update replaces a hand-edited or legacy malformed file.
+        old = {'path': SUMMARY_NAME, 'exists': False, 'total_entries': 0,
+               'total_uses': 0, 'sources': []}
+    if not current or not any(current.values()):
+        if old['exists']:
+            path = summary_path(root)
+            path.unlink()
+            return dict(summary_rows(root), updated=True)
+        return dict(old, updated=False)
+    uses = {item['source']: item['uses'] for item in old['sources']}
+    if used_ids:
+        by_id = {entry['id']: entry for path_entries in current.values()
+                 for entry in path_entries}
+        if len(set(used_ids)) != len(used_ids):
+            raise ValueError('record-use IDs must be unique within one use event')
+        missing = [entry_id for entry_id in used_ids if entry_id not in by_id]
+        if missing:
+            raise ValueError('Entry missing or changed; refresh list/search before recording use')
+        for entry_id in used_ids:
+            source = by_id[entry_id]['file']
+            uses[source] = uses.get(source, 0) + 1
+    sources = [{'source': source, 'entries': len(items), 'uses': max(0, uses.get(source, 0))}
+               for source, items in sorted(current.items())]
+    total_entries = sum(item['entries'] for item in sources)
+    total_uses = sum(item['uses'] for item in sources)
+    if (old['exists'] and old['total_entries'] == total_entries
+            and old['total_uses'] == total_uses and old['sources'] == sources):
+        return dict(old, updated=False)
+    path = summary_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + '.tmp')
+    try:
+        temporary.write_text(render_summary(sources), encoding='utf-8')
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    result = summary_rows(root)
+    result['updated'] = True
+    return result
+
+
 def check(root, selected, all_files):
     issues, known, linked, seen = [], set(all_files), set(), {}
     index = root / '.workspace-memory/MEMORY.md'
@@ -164,13 +263,16 @@ def check(root, selected, all_files):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['status', 'list', 'search', 'show', 'check'])
+    parser.add_argument('action', choices=['status', 'list', 'search', 'show', 'check',
+                                            'summary', 'record-use', 'refresh-summary'])
     parser.add_argument('--workspace', required=True, help='Resolved workspace root; never auto-discovered')
     parser.add_argument('--harness', choices=['codex', 'claude', 'gemini', 'opencode', 'cursor', 'copilot', 'generic'])
     parser.add_argument('--instruction-file', help='Verified workspace-relative instruction file for status')
     parser.add_argument('--topic')
     parser.add_argument('--query')
     parser.add_argument('--id')
+    parser.add_argument('--entry-id', action='append',
+                        help='Current entry ID; repeat for each entry used in one event')
     parser.add_argument('--limit', type=int, default=20)
     parser.add_argument('--page', type=int, default=1)
     args = parser.parse_args(argv)
@@ -180,10 +282,16 @@ def main(argv=None):
         parser.error('search requires --query')
     if args.action == 'show' and not args.id:
         parser.error('show requires --id from list/search')
+    if args.action == 'record-use' and not args.entry_id:
+        parser.error('record-use requires at least one --entry-id from list/search')
     if args.query is not None and args.action != 'search':
         parser.error('--query applies only to search')
     if args.id is not None and args.action != 'show':
         parser.error('--id applies only to show')
+    if args.entry_id is not None and args.action != 'record-use':
+        parser.error('--entry-id applies only to record-use')
+    if args.topic is not None and args.action in ('summary', 'record-use', 'refresh-summary'):
+        parser.error('--topic does not apply to summary updates')
     if (args.limit != 20 or args.page != 1) and args.action not in ('list', 'search', 'check'):
         parser.error('pagination applies only to list/search/check')
     if (args.harness or args.instruction_file) and args.action != 'status':
@@ -191,6 +299,9 @@ def main(argv=None):
     root = Path(args.workspace).resolve(strict=True)
     if not root.is_dir():
         raise ValueError('Workspace must be a directory')
+    if args.action == 'summary':
+        return {'workspace': str(root), 'action': args.action,
+                'summary': summary_rows(root)}
     all_files = files(root)
     selected = all_files
     if args.topic:
@@ -198,7 +309,11 @@ def main(argv=None):
         if not selected:
             raise ValueError('No matching topic file; use agent retrieval for heading-based topics')
     result = {'workspace': str(root), 'action': args.action}
-    if args.action == 'status':
+    if args.action == 'record-use':
+        result['summary'] = refresh_summary(root, args.entry_id)
+    elif args.action == 'refresh-summary':
+        result['summary'] = refresh_summary(root)
+    elif args.action == 'status':
         harness = args.harness or 'generic'
         if args.instruction_file:
             relative = Path(args.instruction_file)

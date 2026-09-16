@@ -20,7 +20,7 @@ needed for an unambiguous explicit uninstall within host permissions.
    ambiguous blocks, preserve uncertain content and report incomplete removal.
    Remove a dedicated import only when its target is verified to contain solely
    this managed rule; never modify targets outside the workspace.
-3. Delete the workspace's `.workspace-memory/` store, including its managed AGENTS.md, topics and PAUSED.
+3. Delete the workspace's `.workspace-memory/` store, including its managed AGENTS.md, topics, auto-managed SUMMARY.md, and PAUSED.
    Validate absolute paths and every descendant before recursive removal; reject
    symlinks, junctions, redirected paths, or paths outside that exact store. If
    unrelated files were placed inside it, preserve those files and report them.

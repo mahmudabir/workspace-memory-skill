@@ -6,9 +6,12 @@ Follow the controls and mutation boundaries in [commands](commands.md).
 ### Optional token-saving helper
 
 Use `scripts/memory.py` from the skill directory with an available Python 3.9+
-runtime. It uses only the standard library, writes nothing, and requires the agent
-to resolve the workspace root explicitly. Pass arguments as literal values using
-the host's safe quoting; never concatenate user text into executable shell syntax.
+runtime. Its status/list/search/show/check/summary actions are read-only and use
+only the standard library. The helper also provides the narrowly scoped
+`refresh-summary` and `record-use` metadata operations; they write only the
+auto-managed `SUMMARY.md`, never knowledge. All actions require the agent to
+resolve the workspace root explicitly. Pass arguments as literal values using the
+host's safe quoting; never concatenate user text into executable shell syntax.
 
 ```text
 python -B <skill-dir>/scripts/memory.py status --workspace <root> --harness <current-host>
@@ -16,6 +19,9 @@ python -B <skill-dir>/scripts/memory.py list --workspace <root> --limit 20 --pag
 python -B <skill-dir>/scripts/memory.py search --workspace <root> --query "authentication"
 python -B <skill-dir>/scripts/memory.py show --workspace <root> --id <returned-id>
 python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --page 1
+python -B <skill-dir>/scripts/memory.py summary --workspace <root>
+python -B <skill-dir>/scripts/memory.py refresh-summary --workspace <root>
+python -B <skill-dir>/scripts/memory.py record-use --workspace <root> --entry-id <id> [--entry-id <id> ...]
 ```
 
 - JSON list/search results contain short excerpts, source locations, display numbers,
@@ -24,6 +30,7 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
   rechecks the ID against current contents and refuses a changed/missing entry.
 - Use the helper for normal Markdown bullets and paragraphs. It omits headings,
   blockquotes, HTML comments, README files, and sections named Index/Memory Index.
+  `SUMMARY.md` is excluded by path and is never a knowledge entry.
   Unusual layouts, tables, multiline entries separated by blank lines, or quoted
   knowledge need targeted source inspection. Parser blocks are retrieval candidates,
   not guaranteed independent facts; inspect complete boundaries before editing.
@@ -47,10 +54,11 @@ python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --pa
   directory, resolve imports, or prove host loading. If the rule is imported, inspect
   that import and its target with native file tools before concluding setup is absent.
   Unsafe linked memory paths fail rather than being followed.
-- The helper has no write, compact, repair, install, or network operations. It does
-  not automatically redact existing secrets; avoid printing known-sensitive entries
+- The helper has no knowledge-write, compact, repair, install, or network operations.
+  It does not automatically redact existing secrets; avoid printing known-sensitive entries
   and never repeat sensitive content to the user. Use targeted safe inspection if
-  memory is known to contain sensitive data.
+  memory is known to contain sensitive data. `refresh-summary` and `record-use` are
+  the sole metadata-writing operations and never print knowledge content.
 - For compact/repair, use check to locate candidates, then inspect only relevant
   complete entries. Semantic judgment and authorized edits remain with the agent.
   Do not remove knowledge based solely on a parser or duplicate warning.
