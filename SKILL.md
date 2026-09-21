@@ -60,6 +60,8 @@ no skill can guarantee recovery from a broken host sandbox without host interven
 Read [setup workflow](references/setup.md) for enable/update, including bare
 invocation. For any other operation creating a file, read its Template-driven
 file creation section first. Do not load setup for existing-file reads or edits.
+Enable/update groups the workspace-root `.gitignore` rules under a single
+`# workspace-memory skill` comment, including when upgrading existing rules.
 
 ## Memory operations
 

@@ -66,20 +66,29 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    helper's `refresh-summary` operation; it is metadata, not retrievable knowledge.
    Topic directory guidance is already in the installed memory rule; do not create
    a redundant README when sharding begins.
-6. Ensure the workspace-root .gitignore contains both explicit rules:
-   - .workspace-memory/PAUSED
-   - .workspace-memory/
+6. Ensure the workspace-root .gitignore contains this labeled section:
+
+   ```gitignore
+   # workspace-memory skill
+   .workspace-memory/PAUSED
+   .workspace-memory/
+   ```
+
    Read it first, preserve unrelated content, and add missing rules once; create
    it if absent, even without an initialized Git repository. Use native file tools
    or the reviewed-source creation workflow; reject linked/redirected paths.
-   Place these rules after conflicting negations; move only these exact rules if
-   necessary, without duplicating them. Dry-run previews the edit without writing.
+   On existing installations, add the comment above the rules if missing. Keep
+   one labeled section on repeated enable/update; consolidate only these exact
+   rules and this comment, preserving unrelated rules and comments. Place the
+   section after conflicting negations without duplicating its lines. Dry-run
+   previews the edit without writing.
    With Git available in a repository, verify representative paths with
    git check-ignore --no-index and inspect git ls-files for tracked memory.
    Ignore rules do not untrack existing files: report those paths without changing
    the index or history. Without Git, verify content and state that Git behavior
    was not tested. Report blocked ignore edits as incomplete setup.
-7. Verify the separate rule, each loader and its workspace-root target, ignore rules,
+7. Verify the separate rule, each loader and its workspace-root target, ignore rules
+   and their single section comment,
    preservation of unrelated instructions, and any
    affected links. Report the installation path and explain that a new task/session
    may be needed to load changed instructions. Do not claim a fresh-session test
