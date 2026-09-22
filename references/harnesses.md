@@ -8,6 +8,13 @@ resources relative to the loaded SKILL.md, never a hardcoded home directory.
 
 ## Select project instructions
 
+For multi-repository projects, apply the skill's automatic repository routing
+first and install/update the loader and rule separately in each selected root.
+Once a loader is active, its on-demand rule resolves other task-relevant attached roots
+and reads their enabled rules; do not assume the host automatically loads sibling
+repository instructions. If no loader or skill is loaded by the host, routing
+cannot run. Existing installations need `update` to receive these routing rules.
+
 | Harness | Default project instruction destination | Project skill location |
 | --- | --- | --- |
 | Codex | `AGENTS.md`; nonempty `AGENTS.override.md` takes precedence | `.agents/skills/workspace-memory/` |

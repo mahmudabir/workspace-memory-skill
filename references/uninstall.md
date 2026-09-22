@@ -2,7 +2,8 @@
 
 
 `uninstall` (alias `remove-workspace-memory`) fully removes this memory system from
-one resolved workspace. An explicit request to fully remove the system selects this
+each root selected by [automatic repository routing](../SKILL.md#automatic-repository-routing).
+An explicit request to fully remove the system selects this
 action; `forget all` only clears saved knowledge. No additional confirmation is
 needed for an unambiguous explicit uninstall within host permissions.
 

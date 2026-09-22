@@ -34,8 +34,12 @@ Use this workflow when the user asks to enable/setup memory. An invocation with
 no further request means enable it in the current workspace. Inspection and
 remember/forget requests do not authorize unrelated setup or configuration changes.
 
-1. Identify the intended workspace root from task context. Do not assume a nested
-   working directory is the root. With multiple plausible roots, ask which one.
+1. Apply [automatic repository routing](../SKILL.md#automatic-repository-routing).
+   For unqualified project-wide enable/update, select all attached repository
+   roots automatically; for an explicit workspace or repository-scoped request,
+   select only that scope. Repeat steps 2-7 separately for each deduplicated root.
+   Do not create a shared parent store or move existing knowledge. Ask only when
+   the target cannot be resolved from context, not because the project has two repos.
 2. Read [harness integration](harnesses.md) to select the current host's
    effective project instruction file. Honor explicit harness/instruction-file arguments;
    do not infer the running host from installed folders. Read applicable instructions
@@ -63,12 +67,13 @@ remember/forget requests do not authorize unrelated setup or configuration chang
    bundled [starter](../assets/MEMORY.md) for first meaningful persistence, or explicit
    template requests. When updating a workspace that already has saved knowledge,
    initialize or refresh its auto-managed `.workspace-memory/SUMMARY.md` with the
-   helper's `refresh-summary` operation; it is metadata, not retrievable knowledge.
+   helper's `refresh-summary --brief` operation; it is metadata, not retrievable knowledge.
    Topic directory guidance is already in the installed memory rule; do not create
    a redundant README when sharding begins.
 6. Ensure the workspace-root .gitignore contains this labeled section:
 
    ```gitignore
+   
    # workspace-memory skill
    .workspace-memory/PAUSED
    .workspace-memory/

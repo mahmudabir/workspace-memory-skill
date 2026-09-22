@@ -10,24 +10,33 @@ runtime. Its status/list/search/show/check/summary actions are read-only and use
 only the standard library. The helper also provides the narrowly scoped
 `refresh-summary` and `record-use` metadata operations; they write only the
 auto-managed `SUMMARY.md`, never knowledge. All actions require the agent to
-resolve the workspace root explicitly. Pass arguments as literal values using the
+select the repository/workspace explicitly. The helper normalizes a directory
+inside Git to the nearest root with a `.git` file or directory; non-Git paths
+remain unchanged. It does not discover other attached repositories. Its returned
+`workspace` is the store root, independent of the caller's current directory or
+Codex project. Pass arguments as literal values using the
 host's safe quoting; never concatenate user text into executable shell syntax.
 
 ```text
 python -B <skill-dir>/scripts/memory.py status --workspace <root> --harness <current-host>
 python -B <skill-dir>/scripts/memory.py list --workspace <root> --limit 20 --page 1
-python -B <skill-dir>/scripts/memory.py search --workspace <root> --query "authentication"
+python -B <skill-dir>/scripts/memory.py search --workspace <root> --query "authentication" --limit 5
 python -B <skill-dir>/scripts/memory.py show --workspace <root> --id <returned-id>
 python -B <skill-dir>/scripts/memory.py check --workspace <root> --limit 20 --page 1
 python -B <skill-dir>/scripts/memory.py summary --workspace <root>
-python -B <skill-dir>/scripts/memory.py refresh-summary --workspace <root>
-python -B <skill-dir>/scripts/memory.py record-use --workspace <root> --entry-id <id> [--entry-id <id> ...]
+python -B <skill-dir>/scripts/memory.py refresh-summary --workspace <root> --brief
+python -B <skill-dir>/scripts/memory.py record-use --workspace <root> --entry-id <id> [--entry-id <id> ...] --brief
 ```
 
 - JSON list/search results contain short excerpts, source locations, display numbers,
   content-derived IDs, and `has_more`; no total is claimed without counting. Keep IDs
   in conversation for selection, but show simple numbers to the developer. `show`
   rechecks the ID against current contents and refuses a changed/missing entry.
+- For automatic recall start with five focused results, then expand as needed;
+  explicit pagination defaults remain unchanged. `--brief` is optional for summary,
+  record-use and refresh-summary: it omits source rows from the response only,
+  preserving totals, persistence and full reporting without the flag. Batch usage
+  IDs per root; record-use already refreshes counts. No summary reread is required.
 - Use the helper for normal Markdown bullets and paragraphs. It omits headings,
   blockquotes, HTML comments, README files, and sections named Index/Memory Index.
   `SUMMARY.md` is excluded by path and is never a knowledge entry.

@@ -17,6 +17,22 @@ maintenance. The knowledge itself remains in ordinary workspace files that human
 can review and manage.
 **Installing the skill and enabling it in a workspace are separate steps.**
 
+### Projects with multiple repositories
+
+Repository selection is automatic: local work uses that repository's
+`.workspace-memory/`; work across repositories recalls relevant stores and saves
+facts with their owners. Project-wide enable/update configures each attached
+repository separately. An explicit `workspace="path"` selects the repository;
+subdirectories resolve to its root. The store stays at
+`<repo-root>/.workspace-memory/`, so another Codex project opening the same checkout
+uses the same memory without copying or re-enabling it. Separate clones, worktrees,
+and machines do not automatically share these ignored local files.
+Each store keeps its own pause state and usage summary; session skip covers all.
+Ordinary work never enables a missing store or falls back to a parent/sibling.
+Existing installations need `update` to install the new routing instructions.
+Routing is agent-mediated and requires the skill or an installed loader to be
+loaded by the host; adding a repository alone does not enable its memory.
+
 ## Native Memory vs Workspace Memory
 
 Native agent memory and Workspace Memory can overlap, but they solve different
@@ -334,7 +350,7 @@ do not recreate memory. See [full removal details](references/uninstall.md).
 
 | Parameter | Use |
 | --- | --- |
-| `workspace="path"` | Select the workspace; otherwise use the current resolved root. |
+| `workspace="path"` | Select a repository (subdirectories resolve to its root) or non-Git workspace; otherwise route automatically by task/project scope. |
 | `topic="name"` | Narrow knowledge operations to a topic. |
 | `query="words"` | Supply a search query. |
 | `target="selector"` | Select an existing entry for show/edit/delete. |
@@ -362,14 +378,19 @@ python -B scripts/memory.py list --workspace /path/to/project --limit 20
 python -B scripts/memory.py search --workspace /path/to/project --query "testing"
 python -B scripts/memory.py check --workspace /path/to/project
 python -B scripts/memory.py summary --workspace /path/to/project
-python -B scripts/memory.py refresh-summary --workspace /path/to/project
-python -B scripts/memory.py record-use --workspace /path/to/project --entry-id <id>
+python -B scripts/memory.py refresh-summary --workspace /path/to/project --brief
+python -B scripts/memory.py record-use --workspace /path/to/project --entry-id <id> --brief
 ```
 
 Quote paths as required by your shell. Some systems use `python3` instead of `python`.
 
 `memory.py` returns compact JSON. Its normal inspection actions never write files;
-the narrowly scoped `record-use` and `refresh-summary` actions update only the
+`--brief` omits source rows from summary/update responses without changing stored
+counts. Automatic recall starts with five focused results and expands as needed;
+explicit lists and audits retain their full requested scope. The installed loader
+loads detailed rules on demand; unchanged context and batched usage updates avoid
+repeated reads. Existing installations need `update` to receive the shorter loader.
+The narrowly scoped `record-use` and `refresh-summary` actions update only the
 auto-managed `SUMMARY.md`. Its keyword search and structural checks do not establish
 factual freshness or semantic equivalence.
 Session skip belongs to the conversation and cannot be detected by the helper;

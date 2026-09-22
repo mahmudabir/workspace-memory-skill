@@ -36,6 +36,47 @@ class MemoryTests(unittest.TestCase):
         self.assertEqual(self.call('check')['issues'], [])
         self.assertEqual(list(self.root.iterdir()), [])
 
+    def test_repository_memory_reused_from_different_project_contexts(self):
+        repo = self.root / 'repo'
+        (repo / '.git').mkdir(parents=True)
+        nested = repo / 'src' / 'feature'
+        nested.mkdir(parents=True)
+        self.put('repo/.workspace-memory/MEMORY.md', '# Memory\n- Shared repo fact.\n')
+        helper = str(Path(memory.__file__).resolve())
+        results = []
+        for project, target in [('project-a', repo), ('project-b', nested)]:
+            cwd = self.root / project
+            cwd.mkdir()
+            result = subprocess.run(
+                [sys.executable, '-B', helper, 'list', '--workspace', str(target)],
+                cwd=cwd, check=True, capture_output=True, text=True)
+            results.append(json.loads(result.stdout))
+            self.assertEqual(list(cwd.iterdir()), [])
+        self.assertEqual(results[0], results[1])
+        self.assertEqual(results[0]['workspace'], str(repo))
+        self.assertIn('Shared repo fact.', results[0]['entries'][0]['summary'])
+        memory.main(['refresh-summary', '--workspace', str(nested)])
+        self.assertTrue((repo / '.workspace-memory/SUMMARY.md').is_file())
+        self.assertFalse((nested / '.workspace-memory').exists())
+
+    def test_nested_repository_and_git_file_have_separate_stores(self):
+        (self.root / '.git').mkdir()
+        self.put('.workspace-memory/MEMORY.md', '- Parent fact.\n')
+        child = self.root / 'nested'
+        self.put('nested/.git', 'gitdir: ../metadata\n')
+        nested = child / 'src'
+        nested.mkdir()
+        result = memory.main(['list', '--workspace', str(nested)])
+        self.assertEqual(result['workspace'], str(child))
+        self.assertEqual(result['entries'], [])
+        self.assertFalse((child / '.workspace-memory').exists())
+
+    def test_non_git_workspace_stays_local(self):
+        child = self.root / 'plain'
+        child.mkdir()
+        self.assertEqual(memory.repository_root(child), child)
+
+
     def test_pagination_search_unicode_and_stale_selection(self):
         path = self.put('.workspace-memory/MEMORY.md', '# Memory\n\n## Decisions\n- **Auth:** Separate keys.\n  Keep signing private.\n- **Testing:** Isolate databases.\n- বাংলা তথ্য\n')
         before = path.read_bytes()
@@ -232,6 +273,26 @@ class MemoryTests(unittest.TestCase):
         refreshed = self.call('refresh-summary')['summary']
         self.assertTrue(refreshed['updated'])
         self.assertFalse(refreshed['exists'])
+
+    def test_brief_metadata_preserves_full_counts_and_persistence(self):
+        for i in range(40):
+            self.put(f'.workspace-memory/topics/topic-{i}.md', f'- Fact {i}.\n')
+        brief = self.call('refresh-summary', '--brief')['summary']
+        self.assertEqual(brief['total_entries'], 40)
+        self.assertNotIn('sources', brief)
+        entry_id = self.call('list', '--limit', '1')['entries'][0]['id']
+        used = self.call('record-use', '--entry-id', entry_id, '--brief')['summary']
+        self.assertEqual(used['total_uses'], 1)
+        full = self.call('summary')['summary']
+        before = (self.root / '.workspace-memory/SUMMARY.md').read_bytes()
+        compact = self.call('summary', '--brief')['summary']
+        self.assertEqual(compact, {k: v for k, v in full.items() if k != 'sources'})
+        self.assertEqual(len(full['sources']), 40)
+        self.assertEqual(sum(row['uses'] for row in full['sources']), 1)
+        self.assertLess(len(json.dumps(compact)), len(json.dumps(full)) // 5)
+        self.assertEqual((self.root / '.workspace-memory/SUMMARY.md').read_bytes(), before)
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            self.call('list', '--brief')
 
     def test_malformed_summary_is_replaced_by_refresh(self):
         self.put('.workspace-memory/MEMORY.md', '# Memory\n- A fact.\n')

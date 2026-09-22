@@ -32,6 +32,18 @@ def raise_walk_error(error):
     raise error
 
 
+def repository_root(workspace):
+    """Keep a checkout's memory independent of project selection or subdirectory."""
+    root = Path(workspace).resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError('Workspace must be a directory')
+    for candidate in (root, *root.parents):
+        marker = candidate / '.git'
+        if marker.is_dir() or marker.is_file():
+            return candidate
+    return root
+
+
 def files(root):
     index = safe(root, root / '.workspace-memory/MEMORY.md')
     directory = safe(root, root / '.workspace-memory/topics')
@@ -265,7 +277,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['status', 'list', 'search', 'show', 'check',
                                             'summary', 'record-use', 'refresh-summary'])
-    parser.add_argument('--workspace', required=True, help='Resolved workspace root; never auto-discovered')
+    parser.add_argument('--workspace', required=True, help='Repository directory or subdirectory; non-Git workspace root')
     parser.add_argument('--harness', choices=['codex', 'claude', 'gemini', 'opencode', 'cursor', 'copilot', 'generic'])
     parser.add_argument('--instruction-file', help='Verified workspace-relative instruction file for status')
     parser.add_argument('--topic')
@@ -275,7 +287,11 @@ def main(argv=None):
                         help='Current entry ID; repeat for each entry used in one event')
     parser.add_argument('--limit', type=int, default=20)
     parser.add_argument('--page', type=int, default=1)
+    parser.add_argument('--brief', action='store_true',
+                        help='Summary actions only: omit per-source rows from output')
     args = parser.parse_args(argv)
+    if args.brief and args.action not in ('summary', 'record-use', 'refresh-summary'):
+        parser.error('--brief applies only to summary, record-use, or refresh-summary')
     if not 1 <= args.limit <= 100 or args.page < 1:
         parser.error('limit must be 1..100 and page must be positive')
     if args.action == 'search' and not (args.query and args.query.strip()):
@@ -296,12 +312,13 @@ def main(argv=None):
         parser.error('pagination applies only to list/search/check')
     if (args.harness or args.instruction_file) and args.action != 'status':
         parser.error('--harness and --instruction-file apply only to status')
-    root = Path(args.workspace).resolve(strict=True)
-    if not root.is_dir():
-        raise ValueError('Workspace must be a directory')
+    root = repository_root(args.workspace)
     if args.action == 'summary':
+        summary = summary_rows(root)
+        if args.brief:
+            summary.pop('sources')
         return {'workspace': str(root), 'action': args.action,
-                'summary': summary_rows(root)}
+                'summary': summary}
     all_files = files(root)
     selected = all_files
     if args.topic:
@@ -373,6 +390,8 @@ def main(argv=None):
             entry['number'] = matches
             output.append(entry)
         result.update(entries=output, page=args.page, has_more=matches > offset + args.limit)
+    if args.brief:
+        result['summary'].pop('sources')
     return result
 
 

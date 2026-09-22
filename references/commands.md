@@ -27,7 +27,7 @@ References already loaded and unchanged need not be reread.
 
 | Parameter | Meaning and default |
 | --- | --- |
-| `workspace="path"` | Explicit workspace root; otherwise resolve the current workspace. Never infer another developer's root or use user-global memory. |
+| `workspace="path"` | Select a repository (subdirectories normalize to its root) or a non-Git workspace; otherwise use [automatic repository routing](../SKILL.md#automatic-repository-routing). Project-wide commands operate separately on all attached repositories. Never use user-global memory. |
 | `harness="codex|claude|gemini|opencode|cursor|copilot|generic"` | Setup/update/status only; default to the known current host. Setup may accept an explicit comma-separated set or `all` for the six named hosts. |
 | `instruction-file="relative/path"` | Setup/update/status/uninstall only; verified project instruction path within the workspace for a custom host/configuration. Overrides the default path; never invent host support. |
 | `topic="name or relative file"` | Narrow to a knowledge domain or existing memory topic. Default: relevant scope for search; whole memory for list/status/compact/check/repair. |
@@ -40,10 +40,16 @@ References already loaded and unchanged need not be reread.
 
 Reject unsupported or invalid parameter combinations with a short correction;
 do not silently ignore them. Do not require parameters already clear from context.
-Ask only for missing content, ambiguous roots/targets, or consequential unresolved
+Ask only for missing content, roots/targets unresolved after automatic routing, or consequential unresolved
 choices. Do not invent memory content. Read-only commands never create files.
 
 For status, first read [harness integration](harnesses.md) and resolve the effective project instruction file. Pass custom paths explicitly to the helper.
+
+For multiple selected roots, invoke the selected workflow/helper separately for
+each root and label results, pagination, and selectors with that root. Entry IDs
+are store-local. Apply mutations and persistent controls only to the resolved
+scope; session skip remains session-wide. Report per-root failures while completing
+independent authorized operations in the other roots. Do not silently merge stores.
 
 ## Actions
 
@@ -70,6 +76,9 @@ For status, first read [harness integration](harnesses.md) and resolve the effec
 The optional Python helper also exposes `refresh-summary` (reconcile entry counts)
 and `record-use` (record one material use for each supplied current entry ID). These
 are helper-only metadata operations, not additional conversational knowledge actions.
+Use `--brief` for routine helper updates to omit source rows from output; stored
+counts and full `summary` reporting are unchanged. Batch unique IDs per root and
+avoid a separate refresh when record-use already reconciles the same changes.
 
 ## Pause, skip, and resume
 
